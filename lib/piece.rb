@@ -2,8 +2,11 @@
 
 # General class for all pieces
 class Piece
-  def initialize(symbol = 'X')
+  attr_reader :location, :symbol
+
+  def initialize(symbol = 'X', location = [0, 0])
     @symbol = symbol
+    @location = location
   end
 
   def to_s
