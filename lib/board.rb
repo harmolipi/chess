@@ -9,6 +9,7 @@ require_relative './knight'
 require_relative './bishop'
 require_relative './queen'
 require_relative './king'
+require_relative './colors'
 require 'pry'
 
 # Class handling the chess board, its moves, and its contents
@@ -39,15 +40,26 @@ class Board
     default_positions
   end
 
-  def to_s
-    @board_contents.each_with_index.reverse_each do |column, index|
+  def to_s(board_display = @board_contents)
+    board_display.each_with_index.reverse_each do |column, index|
       print '   | '
       column.each_index do |index2|
-        print @board_contents[index2][index] || EMPTY_CELL
+        print board_display[index2][index] || EMPTY_CELL
         print ' | '
       end
       print "\n"
     end
+  end
+
+  def display_possible_moves(piece)
+    possible_moves_board = @board_contents
+    piece.possible_moves.each do |possible_move|
+      board_square = possible_moves_board[possible_move[0]][possible_move[1]]
+      if board_square.nil?
+        possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL.red.on_white
+      end
+    end
+    to_s(possible_moves_board)
   end
 
   def to_s_temp
