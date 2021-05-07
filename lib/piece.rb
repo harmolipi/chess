@@ -12,4 +12,8 @@ class Piece
   def to_s
     @symbol
   end
+
+  def valid_move?(move)
+    true # temp until we write this one out
+  end
 end
