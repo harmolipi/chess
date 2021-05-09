@@ -16,7 +16,7 @@ require 'pry'
 class Board
   attr_reader :board_contents
 
-  EMPTY_CELL = '.'
+  EMPTY_CELL = "\u25CF"
 
   # def initialize(board_contents = Array.new(8) { [] })
   def initialize
@@ -51,15 +51,43 @@ class Board
     end
   end
 
+  def to_s_colored(board_display = @board_contents)
+    board_display.each_with_index.reverse_each do |column, index|
+      print '   '
+      column.each_index do |index2|
+        print print_square(index + index2, board_display[index2][index])
+      end
+      print "\n"
+    end
+  end
+
+  def print_square(index = 1, contents = ' ')
+    background = index.odd? ? 'on_gray' : 'on_blue'
+    square = contents.nil? ? ' ' : contents
+    # "\e[#{font};#{background}m#{string}\e[0m"
+    " #{square} ".send(background)
+  end
+
   def display_possible_moves(piece)
     possible_moves_board = @board_contents
     piece.possible_moves.each do |possible_move|
       board_square = possible_moves_board[possible_move[0]][possible_move[1]]
       if board_square.nil?
-        possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL.red.on_white
+        possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL.red
       end
     end
     to_s(possible_moves_board)
+  end
+
+  def display_possible_moves(piece)
+    possible_moves_board = @board_contents
+    piece.possible_moves.each do |possible_move|
+      board_square = possible_moves_board[possible_move[0]][possible_move[1]]
+      if board_square.nil?
+        possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL.red
+      end
+    end
+    to_s_colored(possible_moves_board)
   end
 
   def to_s_temp
