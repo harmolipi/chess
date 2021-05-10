@@ -2,6 +2,7 @@
 
 require_relative './board'
 require_relative './pawn'
+require 'pry'
 
 my_pawn = Pawn.new('black', [0, 1])
 # p my_pawn.location

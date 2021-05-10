@@ -16,7 +16,7 @@ require 'pry'
 class Board
   attr_reader :board_contents
 
-  EMPTY_CELL = "\u25CF"
+  EMPTY_CELL = " \u25CF ".red
 
   # def initialize(board_contents = Array.new(8) { [] })
   def initialize
@@ -61,11 +61,16 @@ class Board
     end
   end
 
-  def print_square(index = 1, contents = ' ')
-    background = index.odd? ? 'on_gray' : 'on_blue'
-    square = contents.nil? ? ' ' : contents
-    # "\e[#{font};#{background}m#{string}\e[0m"
-    " #{square} ".send(background)
+  def print_square(index, contents)
+    # background = index.odd? ? 'on_gray' : 'on_blue'
+    background = index.odd? ? 47 : 44
+    square = contents.nil? ? '   ' : contents
+    "\e[#{background}m#{square}\e[0m"
+    # " #{square} ".send(background)
+  end
+
+  def display_selection
+
   end
 
   def display_possible_moves(piece)
@@ -84,7 +89,7 @@ class Board
     piece.possible_moves.each do |possible_move|
       board_square = possible_moves_board[possible_move[0]][possible_move[1]]
       if board_square.nil?
-        possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL.red
+        possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL
       end
     end
     to_s_colored(possible_moves_board)
