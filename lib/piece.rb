@@ -10,6 +10,8 @@ class Piece
   end
 
   def to_s
+    # need to investigate further, and see why this method doesn't seem
+    # to matter in printing the chess board...
     @symbol
   end
 
