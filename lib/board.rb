@@ -16,7 +16,7 @@ require 'pry'
 class Board
   attr_reader :board_contents
 
-  EMPTY_CELL = " \u25CF ".red
+  POSSIBLE_MOVE = " \u25CF ".red
 
   # def initialize(board_contents = Array.new(8) { [] })
   def initialize
@@ -52,6 +52,7 @@ class Board
   end
 
   def to_s_colored(board_display = @board_contents)
+    # binding.pry
     board_display.each_with_index.reverse_each do |column, index|
       print '   '
       column.each_index do |index2|
@@ -73,25 +74,30 @@ class Board
 
   end
 
-  def display_possible_moves(piece)
-    possible_moves_board = @board_contents
-    piece.possible_moves.each do |possible_move|
-      board_square = possible_moves_board[possible_move[0]][possible_move[1]]
-      if board_square.nil?
-        possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL.red
-      end
-    end
-    to_s(possible_moves_board)
-  end
+  # def display_possible_moves(piece)
+  #   possible_moves_board = @board_contents
+  #   piece.possible_moves.each do |possible_move|
+  #     board_square = possible_moves_board[possible_move[0]][possible_move[1]]
+  #     if board_square.nil?
+  #       possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL.red
+  #     end
+  #   end
+  #   to_s(possible_moves_board)
+  # end
 
   def display_possible_moves(piece)
-    possible_moves_board = @board_contents
+    possible_moves_board = []
+
+    @board_contents.each_with_index do |column, index|
+      possible_moves_board << []
+      column.each { |square| possible_moves_board[index] << square }
+    end
+
     piece.possible_moves.each do |possible_move|
       board_square = possible_moves_board[possible_move[0]][possible_move[1]]
-      if board_square.nil?
-        possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL
-      end
+      possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
     end
+
     to_s_colored(possible_moves_board)
   end
 
