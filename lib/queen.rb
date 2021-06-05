@@ -7,6 +7,6 @@ class Queen < Piece
   def initialize(color = 'WHITE', location = [0, 0])
     white_queen = " \u2655 "
     black_queen = " \u265B "
-    super(color.upcase == 'WHITE' ? white_queen : black_queen, location)
+    super(white_queen, black_queen, color, location)
   end
 end

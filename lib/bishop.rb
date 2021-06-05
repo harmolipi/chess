@@ -7,6 +7,6 @@ class Bishop < Piece
   def initialize(color = 'WHITE', location = [0, 0])
     white_bishop = " \u2657 "
     black_bishop = " \u265D "
-    super(color.upcase == 'WHITE' ? white_bishop : black_bishop, location)
+    super(white_bishop, black_bishop, color, location)
   end
 end
