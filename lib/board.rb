@@ -62,9 +62,13 @@ class Board
     end
   end
 
-  def print_square(index, contents)
+  def print_square(index, contents, attacking: false)
     # background = index.odd? ? 'on_gray' : 'on_blue'
-    background = index.odd? ? 47 : 44
+    background = if attacking
+                   41
+                 else
+                   index.odd? ? 47 : 44
+                 end
     square = contents.nil? ? '   ' : contents
     "\e[#{background}m#{square}\e[0m"
     # " #{square} ".send(background)
@@ -96,9 +100,14 @@ class Board
     piece.possible_moves.each do |possible_move|
       board_square = possible_moves_board[possible_move[0]][possible_move[1]]
       possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
+
     end
 
     to_s_colored(possible_moves_board)
+  end
+
+  def enemy_piece?(piece, location)
+    piece.color != @board_contents[location[0]][location[1]]
   end
 
   def to_s_temp
