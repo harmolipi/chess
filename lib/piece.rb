@@ -4,7 +4,8 @@ require 'pry'
 
 # General class for all pieces
 class Piece
-  attr_reader :location, :symbol
+  attr_reader :symbol, :color
+  attr_accessor :location
 
   def initialize(white_piece, black_piece, color, location)
     @symbol = color.upcase == 'WHITE' ? white_piece : black_piece
