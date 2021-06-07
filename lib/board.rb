@@ -118,7 +118,7 @@ class Board
   end
 
   def move(piece, location)
-    
+    piece.location = location if can_move?(piece, location)
   end
 
   def to_s_temp
