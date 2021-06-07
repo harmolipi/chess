@@ -44,7 +44,7 @@ class Board
     board_display.each_with_index.reverse_each do |column, index|
       print '   | '
       column.each_index do |index2|
-        print board_display[index2][index] || EMPTY_CELL
+        print board_display[index2][index].symbol || EMPTY_CELL
         print ' | '
       end
       print "\n"
@@ -62,13 +62,9 @@ class Board
     end
   end
 
-  def print_square(index, contents, attacking: false)
+  def print_square(index, contents)
     # background = index.odd? ? 'on_gray' : 'on_blue'
-    background = if attacking
-                   41
-                 else
-                   index.odd? ? 47 : 44
-                 end
+    background = index.odd? ? 47 : 44
     square = contents.nil? ? '   ' : contents
     "\e[#{background}m#{square}\e[0m"
     # " #{square} ".send(background)
@@ -99,15 +95,20 @@ class Board
 
     piece.possible_moves.each do |possible_move|
       board_square = possible_moves_board[possible_move[0]][possible_move[1]]
-      possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
-
+      # possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
+      # binding.pry
+      if board_square.nil?
+        possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
+      elsif enemy_piece?(piece, possible_moves_board[possible_move[0]][possible_move[1]])
+        possible_moves_board[possible_move[0]][possible_move[1]] = possible_moves_board[possible_move[0]][possible_move[1]].symbol.on_red
+      end
     end
 
     to_s_colored(possible_moves_board)
   end
 
-  def enemy_piece?(piece, location)
-    piece.color != @board_contents[location[0]][location[1]]
+  def enemy_piece?(piece, possible_enemy)
+    piece.color != possible_enemy.color
   end
 
   def to_s_temp
@@ -135,11 +136,11 @@ class Board
     #                     EMPTY_CELL, EMPTY_CELL, @black[pawn1], @black[rook1]],
     #                   ]
     @white.each_value do |piece|
-      @board_contents[piece.location[0]][piece.location[1]] = piece.symbol
+      @board_contents[piece.location[0]][piece.location[1]] = piece # was piece.symbol
     end
 
     @black.each_value do |piece|
-      @board_contents[piece.location[0]][piece.location[1]] = piece.symbol
+      @board_contents[piece.location[0]][piece.location[1]] = piece
     end
   end
 end
