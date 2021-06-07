@@ -100,8 +100,8 @@ class Board
       # binding.pry
       if board_square.nil?
         possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
-      elsif enemy_piece?(piece, possible_moves_board[possible_move[0]][possible_move[1]])
-        possible_moves_board[possible_move[0]][possible_move[1]] = possible_moves_board[possible_move[0]][possible_move[1]].symbol.on_red
+      elsif enemy_piece?(piece, board_square)
+        possible_moves_board[possible_move[0]][possible_move[1]] = board_square.symbol.on_red
       end
     end
 
@@ -112,13 +112,13 @@ class Board
     piece.color != possible_enemy.color
   end
 
-  def can_move?(piece, location)
-    piece.possible_moves.include?(location) && (@board_contents[location[0]][location[1]].nil? ||
-                                               enemy_piece?(piece, @board_contents[location[0]][location[1]]))
+  def can_move?(piece, target)
+    target_piece = @board_contents[target[0]][target[1]]
+    piece.possible_moves.include?(target) && (target_piece.nil? || enemy_piece?(piece, target_piece))
   end
 
-  def move(piece, location)
-    piece.location = location if can_move?(piece, location)
+  def move(piece, target)
+    piece.location = target if can_move?(piece, target)
   end
 
   def to_s_temp
