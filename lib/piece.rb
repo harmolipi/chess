@@ -8,15 +8,15 @@ class Piece
   attr_accessor :location
 
   def initialize(white_piece, black_piece, color, location)
-    @symbol = color.upcase == 'WHITE' ? white_piece : black_piece
-    @color = color
+    @color = color.upcase
+    @symbol = @color == 'WHITE' ? white_piece : black_piece
     @location = location
   end
 
   def to_s
     # need to investigate further, and see why this method doesn't seem
     # to matter in printing the chess board...
-    binding.pry
+    # binding.pry
     @symbol
   end
 
