@@ -2,6 +2,7 @@
 
 # rubocop: disable Metrics/AbcSize
 # rubocop: disable Metrics/MethodLength
+# rubocop: disable Metrics/ClassLength
 
 require_relative './pawn'
 require_relative './rook'
@@ -17,6 +18,7 @@ class Board
   attr_reader :board_contents
 
   POSSIBLE_MOVE = " \u25CF ".red
+  VALID_COORDINATES = /^([A-H]|[a-h])[1-8]$/.freeze
 
   # def initialize(board_contents = Array.new(8) { [] })
   def initialize
@@ -53,13 +55,16 @@ class Board
 
   def to_s_colored(board_display = @board_contents)
     # binding.pry
+    row = 8
     board_display.each_with_index.reverse_each do |column, index|
-      print '   '
+      print "   #{row} "
       column.each_index do |index2|
         print print_square(index + index2, board_display[index2][index])
       end
       print "\n"
+      row -= 1
     end
+    puts '      a  b  c  d  e  f  g  h'
   end
 
   def print_square(index, contents)
@@ -86,6 +91,7 @@ class Board
   # end
 
   def display_possible_moves(piece)
+    binding.pry
     possible_moves_board = []
 
     # copies @board_contents to a temporary local board array (maybe move to new method?)
@@ -119,6 +125,26 @@ class Board
 
   def move(piece, target)
     piece.location = target if can_move?(piece, target)
+  end
+
+  def map_coordinates(coordinates)
+    # converts letter/number coordinates to array system used elsewhere (e.g. 'a2' => '[0, 1])
+    return [coordinates[0].downcase.codepoints[0] - 97, coordinates[1].to_i - 1] if verify_coordinates(coordinates)
+
+    raise 'Invalid entry. Please try again.'
+  end
+
+  def coordinates_input
+    print 'Enter your coordinates: '
+    coordinates = gets.chomp
+    map_coordinates(coordinates)
+  rescue StandardError => e
+    puts e
+    retry
+  end
+
+  def verify_coordinates(coordinates)
+    coordinates.match(VALID_COORDINATES)
   end
 
   def to_s_temp
@@ -155,5 +181,6 @@ class Board
   end
 end
 
+# rubocop: enable Metrics/ClassLength
 # rubocop: enable Metrics/MethodLength
 # rubocop: enable Metrics/AbcSize
