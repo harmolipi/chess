@@ -88,6 +88,7 @@ class Board
   def display_possible_moves(piece)
     possible_moves_board = []
 
+    # copies @board_contents to a temporary local board array (maybe move to new method?)
     @board_contents.each_with_index do |column, index|
       possible_moves_board << []
       column.each { |square| possible_moves_board[index] << square }
@@ -109,6 +110,15 @@ class Board
 
   def enemy_piece?(piece, possible_enemy)
     piece.color != possible_enemy.color
+  end
+
+  def can_move?(piece, location)
+    piece.possible_moves.include?(location) && (@board_contents[location[0]][location[1]].nil? ||
+                                               enemy_piece?(piece, @board_contents[location[0]][location[1]]))
+  end
+
+  def move(piece, location)
+    
   end
 
   def to_s_temp
@@ -136,7 +146,7 @@ class Board
     #                     EMPTY_CELL, EMPTY_CELL, @black[pawn1], @black[rook1]],
     #                   ]
     @white.each_value do |piece|
-      @board_contents[piece.location[0]][piece.location[1]] = piece # was piece.symbol
+      @board_contents[piece.location[0]][piece.location[1]] = piece
     end
 
     @black.each_value do |piece|
