@@ -129,21 +129,20 @@ class Board
 
   def map_coordinates(coordinates)
     # converts letter/number coordinates to array system used elsewhere (e.g. 'a2' => '[0, 1])
-    return [coordinates[0].downcase.codepoints[0] - 97, coordinates[1].to_i - 1] if verify_coordinates(coordinates)
-
-    raise 'Invalid entry. Please try again.'
+    [coordinates[0].downcase.codepoints[0] - 97, coordinates[1].to_i - 1]
   end
 
   def coordinates_input
-    print 'Enter your coordinates: '
-    coordinates = gets.chomp
-    map_coordinates(coordinates)
-  rescue StandardError => e
-    puts e
-    retry
+    loop do
+      print 'Enter your coordinates: '
+      coordinates = gets.chomp
+      return map_coordinates(coordinates) if valid_coordinates?(coordinates)
+
+      puts 'Invalid entry, please try again.'
+    end
   end
 
-  def verify_coordinates(coordinates)
+  def valid_coordinates?(coordinates)
     coordinates.match(VALID_COORDINATES)
   end
 
