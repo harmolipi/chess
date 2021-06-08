@@ -128,7 +128,7 @@ class Board
   end
 
   def map_coordinates(coordinates)
-    # converts letter/number coordinates to array system used elsewhere (e.g. 'a2' => '[0, 1])
+    # converts chess coordinates to array coordinates
     [coordinates[0].downcase.codepoints[0] - 97, coordinates[1].to_i - 1]
   end
 
