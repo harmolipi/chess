@@ -15,7 +15,7 @@ require 'pry'
 
 # Class handling the chess board, its moves, and its contents
 class Board
-  attr_reader :board_contents
+  attr_reader :board_contents, :white
 
   POSSIBLE_MOVE = " \u25CF ".red
   VALID_COORDINATES = /^([A-H]|[a-h])[1-8]$/.freeze
@@ -39,6 +39,8 @@ class Board
       king: King.new('black', [4, 7])
     }
     @board_contents = Array.new(8) { [] }
+    @captured = []
+    @last_move = nil
     default_positions
   end
 
@@ -69,7 +71,12 @@ class Board
 
   def print_square(index, contents)
     # background = index.odd? ? 'on_gray' : 'on_blue'
-    background = index.odd? ? 47 : 44
+    # binding.pry
+    background = if @last_move == contents && !@last_move.nil?
+                   42
+                 else
+                   index.odd? ? 47 : 44
+                 end
     square = contents.nil? ? '   ' : contents
     "\e[#{background}m#{square}\e[0m"
     # " #{square} ".send(background)
@@ -91,7 +98,6 @@ class Board
   # end
 
   def display_possible_moves(piece)
-    binding.pry
     possible_moves_board = []
 
     # copies @board_contents to a temporary local board array (maybe move to new method?)
@@ -102,8 +108,6 @@ class Board
 
     piece.possible_moves.each do |possible_move|
       board_square = possible_moves_board[possible_move[0]][possible_move[1]]
-      # possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
-      # binding.pry
       if board_square.nil?
         possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
       elsif enemy_piece?(piece, board_square)
@@ -121,13 +125,22 @@ class Board
   def can_move?(piece, target)
     target_piece = @board_contents[target[0]][target[1]]
     piece.possible_moves.include?(target) && (target_piece.nil? || enemy_piece?(piece, target_piece))
+    # once we have players, ensure player can only control own pieces
   end
 
-  def move(piece, target)
-    piece.location = target if can_move?(piece, target)
+  def move(piece, target_location)
+    target_piece = @board_contents[target_location[0], target_location[1]]
+    if can_move?(piece, target_location)
+      @board_contents[piece.location[0]][piece.location[1]] = nil
+      piece.location = target_location
+      @captured << target_piece unless target_piece.nil?
+      @board_contents[target_location[0]][target_location[1]] = piece
+    end
+    @last_move = piece
   end
 
   def map_coordinates(coordinates)
+    # binding.pry
     # converts chess coordinates to array coordinates
     [coordinates[0].downcase.codepoints[0] - 97, coordinates[1].to_i - 1]
   end
