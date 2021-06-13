@@ -160,26 +160,6 @@ class Board
     coordinates.match(VALID_COORDINATES)
   end
 
-  def to_s_temp
-    temp_array = [['1', '2', '3', '4', '5', '6', '7', '8'], ['1', '2', '3', '4', '5', '6', '7', '8'], ['1', '2', '3', '4', '5', '6', '7', '8'], ['1', '2', '3', '4', '5', '6', '7', '8'], ['1', '2', '3', '4', '5', '6', '7', '8'], ['1', '2', '3', '4', '5', '6', '7', '8'], ['1', '2', '3', '4', '5', '6', '7', '8'], ['1', '2', '3', '4', '5', '6', '7', '8']]
-    temp_array.each_index.reverse_each do |x|
-      temp_array[x].each do |y|
-        print "| #{y}"
-      end
-      puts "\n"
-    end
-
-    temp_array[2][2] = 'x'
-
-    puts "\n\n"
-    temp_array.each_index.reverse_each do |x|
-      temp_array[x].each do |y|
-        print "| #{y} "
-      end
-      puts "|\n"
-    end
-  end
-
   def default_positions
     # @board_contents = [[@white[rook1], @white[pawn1], EMPTY_CELL, EMPTY_CELL,
     #                     EMPTY_CELL, EMPTY_CELL, @black[pawn1], @black[rook1]],
