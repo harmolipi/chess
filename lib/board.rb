@@ -82,10 +82,6 @@ class Board
     # " #{square} ".send(background)
   end
 
-  def display_selection
-    
-  end
-
   # def display_possible_moves(piece)
   #   possible_moves_board = @board_contents
   #   piece.possible_moves.each do |possible_move|
@@ -111,6 +107,15 @@ class Board
     end
 
     to_s(possible_moves_board)
+  end
+
+  def display_selection(selection)
+    selected_board = temp_board
+
+    board_square = selected_board[selection[0]][selection[1]]
+    selected_board[selection[0]][selection[1]] = board_square.symbol.on_green
+
+    to_s(selected_board)
   end
 
   def temp_board
