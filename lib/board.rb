@@ -44,18 +44,18 @@ class Board
     default_positions
   end
 
-  def to_s(board_display = @board_contents)
-    board_display.each_with_index.reverse_each do |column, index|
-      print '   | '
-      column.each_index do |index2|
-        print board_display[index2][index].symbol || EMPTY_CELL
-        print ' | '
-      end
-      print "\n"
-    end
-  end
+  # def to_s(board_display = @board_contents)
+  #   board_display.each_with_index.reverse_each do |column, index|
+  #     print '   | '
+  #     column.each_index do |index2|
+  #       print board_display[index2][index].symbol || EMPTY_CELL
+  #       print ' | '
+  #     end
+  #     print "\n"
+  #   end
+  # end
 
-  def to_s_colored(board_display = @board_contents)
+  def to_s(board_display = @board_contents)
     # binding.pry
     row = 8
     board_display.each_with_index.reverse_each do |column, index|
@@ -98,6 +98,7 @@ class Board
   # end
 
   def display_possible_moves(piece)
+    # binding.pry
     possible_moves_board = []
 
     # copies @board_contents to a temporary local board array (maybe move to new method?)
@@ -115,7 +116,7 @@ class Board
       end
     end
 
-    to_s_colored(possible_moves_board)
+    to_s(possible_moves_board)
   end
 
   def enemy_piece?(piece, possible_enemy)
@@ -124,7 +125,7 @@ class Board
 
   def can_move?(piece, target)
     target_piece = @board_contents[target[0]][target[1]]
-    piece.possible_moves.include?(target) && (target_piece.nil? || enemy_piece?(piece, target_piece))
+    piece.possible_moves.include?(target) && (target_piece.nil? || enemy_piece?(piece, target_piece)) # && Game.current_player
     # once we have players, ensure player can only control own pieces
   end
 
