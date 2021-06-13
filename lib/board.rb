@@ -73,7 +73,7 @@ class Board
     # background = index.odd? ? 'on_gray' : 'on_blue'
     # binding.pry
     background = if @last_move == contents && !@last_move.nil?
-                   42
+                   106 # using 106 (light blue) for last move, and 42 (green) for current selection
                  else
                    index.odd? ? 47 : 44
                  end
@@ -83,7 +83,7 @@ class Board
   end
 
   def display_selection
-
+    
   end
 
   # def display_possible_moves(piece)
@@ -99,13 +99,7 @@ class Board
 
   def display_possible_moves(piece)
     # binding.pry
-    possible_moves_board = []
-
-    # copies @board_contents to a temporary local board array (maybe move to new method?)
-    @board_contents.each_with_index do |column, index|
-      possible_moves_board << []
-      column.each { |square| possible_moves_board[index] << square }
-    end
+    possible_moves_board = temp_board
 
     piece.possible_moves.each do |possible_move|
       board_square = possible_moves_board[possible_move[0]][possible_move[1]]
@@ -117,6 +111,16 @@ class Board
     end
 
     to_s(possible_moves_board)
+  end
+
+  def temp_board
+    # copies @board_contents to a temporary local board array
+    temp_board_array = []
+    @board_contents.each_with_index do |column, index|
+      temp_board_array << []
+      column.each { |square| temp_board_array[index] << square }
+    end
+    temp_board_array
   end
 
   def enemy_piece?(piece, possible_enemy)
@@ -152,7 +156,7 @@ class Board
       coordinates = gets.chomp
       return map_coordinates(coordinates) if valid_coordinates?(coordinates)
 
-      puts 'Invalid entry, please try again.'
+      puts 'Invalid entry, please try again.'.red
     end
   end
 
