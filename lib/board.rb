@@ -57,6 +57,8 @@ class Board
 
   def to_s(board_display = @board_contents)
     # binding.pry
+    system 'clear'
+    puts "\n"
     row = 8
     board_display.each_with_index.reverse_each do |column, index|
       print "   #{row} "
@@ -93,8 +95,16 @@ class Board
   #   to_s(possible_moves_board)
   # end
 
+  def any_possible_moves?(coordinates)
+
+  end
+
+  def get_piece(coordinates, board = @board_contents)
+    board[coordinates[0]][coordinates[1]]
+  end
+
   def display_possible_moves(piece)
-    # binding.pry
+    binding.pry
     possible_moves_board = temp_board
 
     piece.possible_moves.each do |possible_move|
@@ -110,12 +120,12 @@ class Board
   end
 
   def display_selection(selection)
-    selected_board = temp_board
+    selection_board = temp_board
 
-    board_square = selected_board[selection[0]][selection[1]]
-    selected_board[selection[0]][selection[1]] = board_square.symbol.on_green
+    board_square = selection_board[selection[0]][selection[1]]
+    selection_board[selection[0]][selection[1]] = board_square.symbol.on_green
 
-    to_s(selected_board)
+    to_s(selection_board)
   end
 
   def temp_board
