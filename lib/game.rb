@@ -44,17 +44,27 @@ class Game
 
   def two_player_game_loop
     # binding.pry
-    puts "\n"
     @chess_board.to_s
-    puts "\n"
-    # print "Enter the coordinates (e.g. 'a1') for the piece you'd like to move: "
     chosen_piece = @chess_board.get_piece(coordinates_input)
     @chess_board.display_possible_moves(chosen_piece)
+    chosen_move = move_input
+    @chess_board.move(chosen_piece, chosen_move)
+    @chess_board.to_s
   end
 
   def coordinates_input
     loop do
-      print "Enter coordinates (e.g. 'a2') for the piece you want to move: "
+      print "\nEnter coordinates (e.g. 'a2') for the piece you want to move: "
+      coordinates = gets.chomp
+      return map_coordinates(coordinates) if valid_coordinates?(coordinates)
+
+      puts 'Invalid entry, please try again.'.red
+    end
+  end
+
+  def move_input
+    loop do
+      print "\nEnter coordinates for the square you'd like to move to: "
       coordinates = gets.chomp
       return map_coordinates(coordinates) if valid_coordinates?(coordinates)
 
