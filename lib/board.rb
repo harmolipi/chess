@@ -104,11 +104,15 @@ class Board
   end
 
   def display_possible_moves(piece)
-    binding.pry
+    # binding.pry
     possible_moves_board = temp_board
 
+    piece_square = possible_moves_board[piece.location[0]][piece.location[1]]
+    possible_moves_board[piece.location[0]][piece.location[1]] = piece_square.symbol.on_green
+
     piece.possible_moves.each do |possible_move|
-      board_square = possible_moves_board[possible_move[0]][possible_move[1]]
+      # board_square = possible_moves_board[possible_move[0]][possible_move[1]]
+      board_square = get_piece(possible_move, possible_moves_board)
       if board_square.nil?
         possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
       elsif enemy_piece?(piece, board_square)

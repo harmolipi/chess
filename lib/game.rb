@@ -43,12 +43,13 @@ class Game
   end
 
   def two_player_game_loop
+    # binding.pry
     puts "\n"
     @chess_board.to_s
     puts "\n"
     # print "Enter the coordinates (e.g. 'a1') for the piece you'd like to move: "
-    chosen_piece = coordinates_input
-    p chosen_piece
+    chosen_piece = @chess_board.get_piece(coordinates_input)
+    @chess_board.display_possible_moves(chosen_piece)
   end
 
   def coordinates_input
