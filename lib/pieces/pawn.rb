@@ -17,7 +17,7 @@ class Pawn < Piece
   end
 
   def possible_moves
-    movement_direction = @color.upcase == 'WHITE' ? 1 : -1
+    movement_direction = @color == 'white' ? 1 : -1
     possible_moves = [[@location[0], @location[1] + 1 * movement_direction]]
     possible_moves << [@location[0], @location[1] + 2 * movement_direction] if @location == @original_location
     possible_moves.select { |move| valid_move?(move) }

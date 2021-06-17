@@ -8,8 +8,8 @@ class Piece
   attr_accessor :location
 
   def initialize(white_piece, black_piece, color, location)
-    @color = color.upcase
-    @symbol = @color == 'WHITE' ? white_piece : black_piece
+    @color = color
+    @symbol = @color == 'white' ? white_piece : black_piece
     @location = location
   end
 
