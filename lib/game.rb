@@ -50,6 +50,7 @@ class Game
     chosen_move = move_input
     @chess_board.move(chosen_piece, chosen_move)
     @chess_board.to_s
+
   end
 
   def coordinates_input
@@ -87,5 +88,18 @@ class Game
 
   def switch_players
     @current_player = @current_player == 'white' ? 'black' : 'white'
+  end
+
+  def checkmate?
+
+  end
+
+  def stalemate?
+
+  end
+
+  def game_over?
+    # checkmate?
+    false
   end
 end
