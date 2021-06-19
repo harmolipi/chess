@@ -22,6 +22,9 @@ class Piece
 
   def valid_move?(move)
     true # temp until we write this one out
-    
+  end
+
+  def possible_attacks
+    possible_moves
   end
 end
