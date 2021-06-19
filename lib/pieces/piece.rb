@@ -21,7 +21,7 @@ class Piece
   end
 
   def valid_move?(move)
-    true # temp until we write this one out
+    move[0].between?(0, 7) && move[1].between?(0, 7)
   end
 
   def possible_attacks
