@@ -22,4 +22,11 @@ class Pawn < Piece
     possible_moves << [@location[0], @location[1] + 2 * @movement_direction] if @location == @original_location
     possible_moves.select { |move| valid_move?(move) }
   end
+
+  def possible_attacks
+    possible_attacks = []
+    possible_attacks << [@location[0] - 1, @location[1] + 1 * @movement_direction]
+    possible_attacks << [@location[0] + 1, @location[1] + 1 * @movement_direction]
+    possible_attacks.select { |move| valid_move?(move) }
+  end
 end
