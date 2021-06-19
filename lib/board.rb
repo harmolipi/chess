@@ -111,13 +111,29 @@ class Board
     piece_square = possible_moves_board[piece.location[0]][piece.location[1]]
     possible_moves_board[piece.location[0]][piece.location[1]] = piece_square.symbol.on_green
 
+    # piece.possible_moves.each do |possible_move|
+    #   # board_square = possible_moves_board[possible_move[0]][possible_move[1]]
+    #   board_square = get_piece(possible_move, possible_moves_board)
+    #   if board_square.nil?
+    #     possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
+    #   elsif enemy_piece?(piece, board_square)
+    #     possible_moves_board[possible_move[0]][possible_move[1]] = board_square.symbol.on_red
+    #   end
+    # end
+
     piece.possible_moves.each do |possible_move|
+      # binding.pry
       # board_square = possible_moves_board[possible_move[0]][possible_move[1]]
       board_square = get_piece(possible_move, possible_moves_board)
-      if board_square.nil?
-        possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
-      elsif enemy_piece?(piece, board_square)
-        possible_moves_board[possible_move[0]][possible_move[1]] = board_square.symbol.on_red
+      possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
+    end
+
+    piece.possible_attacks.each do |possible_attack|
+      board_square = get_piece(possible_attack, possible_moves_board)
+      break if board_square.nil?
+
+      if enemy_piece?(piece, board_square)
+        possible_moves_board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
       end
     end
 
