@@ -44,22 +44,32 @@ class Game
 
   def two_player_game_loop
     # binding.pry
-    @chess_board.to_s
-    chosen_piece = @chess_board.get_piece(coordinates_input)
-    @chess_board.display_possible_moves(chosen_piece)
-    chosen_move = move_input
-    @chess_board.move(chosen_piece, chosen_move)
-    @chess_board.to_s
-
+    until game_over?
+      @chess_board.to_s
+      chosen_piece = @chess_board.get_piece(coordinates_input)
+      @chess_board.display_possible_moves(chosen_piece)
+      chosen_move = move_input
+      @chess_board.move(chosen_piece, chosen_move)
+      @chess_board.to_s
+      switch_players
+    end
+    end_game
   end
 
   def coordinates_input
     loop do
       print "\nEnter coordinates (e.g. 'a2') for the piece you want to move: "
       coordinates = gets.chomp
-      return map_coordinates(coordinates) if valid_coordinates?(coordinates)
 
-      puts 'Invalid entry, please try again.'.red
+      if valid_coordinates?(coordinates) && !@chess_board.get_piece(map_coordinates(coordinates)).nil? && 
+         @chess_board.player_piece?(@chess_board.get_piece(map_coordinates(coordinates)), @current_player)
+        return map_coordinates(coordinates)
+      end
+
+      # return map_coordinates(coordinates) if valid_coordinates?(coordinates)
+      system 'clear'
+      # puts 'Invalid entry, please try again.'.red
+      @chess_board.to_s(@chess_board.board_contents, 'Invalid entry, please try again.'.red)
     end
   end
 
@@ -101,5 +111,17 @@ class Game
   def game_over?
     # checkmate?
     false
+  end
+
+  def game_won
+
+  end
+
+  def no_winner
+
+  end
+
+  def end_game
+    puts stalemate? ? 'Stalemate! No winner!' : "Congrats #{@current_player} player, you win!"
   end
 end
