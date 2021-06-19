@@ -130,7 +130,6 @@ class Board
 
     piece.possible_attacks.each do |possible_attack|
       board_square = get_piece(possible_attack, possible_moves_board)
-      break if board_square.nil?
 
       if enemy_piece?(piece, board_square)
         possible_moves_board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
@@ -164,21 +163,29 @@ class Board
   end
 
   def enemy_piece?(piece, possible_enemy)
-    piece.color != possible_enemy.color
+    piece.color != possible_enemy.color unless possible_enemy.nil?
   end
 
   def can_move?(piece, target)
-    target_piece = @board_contents[target[0]][target[1]]
-    piece.possible_moves.include?(target) && (target_piece.nil? || enemy_piece?(piece, target_piece)) # && Game.current_player
-    # once we have players, ensure player can only control own pieces
+    target_piece = get_piece(target)
+    piece.possible_moves.include?(target) && target_piece.nil?
+  end
+
+  def can_attack?(piece, target)
+    target_piece = get_piece(target)
+    piece.possible_attacks.include?(target) && enemy_piece?(piece, target_piece)
   end
 
   def move(piece, target_location)
-    target_piece = @board_contents[target_location[0], target_location[1]]
+    target_piece = get_piece(target_location)
     if can_move?(piece, target_location)
       @board_contents[piece.location[0]][piece.location[1]] = nil
       piece.location = target_location
-      @captured << target_piece unless target_piece.nil?
+      @board_contents[target_location[0]][target_location[1]] = piece
+    elsif can_attack?(piece, target_location)
+      @board_contents[piece.location[0]][piece.location[1]] = nil
+      piece.location = target_location
+      @captured << target_piece
       @board_contents[target_location[0]][target_location[1]] = piece
     end
     @last_move = piece
