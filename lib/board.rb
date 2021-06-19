@@ -55,9 +55,10 @@ class Board
   #   end
   # end
 
-  def to_s(board_display = @board_contents)
+  def to_s(board_display = @board_contents, system_message = '')
     # binding.pry
     system 'clear'
+    puts system_message
     puts "\n"
     row = 8
     board_display.each_with_index.reverse_each do |column, index|
@@ -77,7 +78,7 @@ class Board
     background = if @last_move == contents && !@last_move.nil?
                    106 # using 106 (light blue) for last move, and 42 (green) for current selection
                  else
-                   index.odd? ? 47 : 44
+                   index.odd? ? 47 : 44 # 47 = gray, 44 = blue
                  end
     square = contents.nil? ? '   ' : contents
     "\e[#{background}m#{square}\e[0m"
@@ -140,6 +141,10 @@ class Board
       column.each { |square| temp_board_array[index] << square }
     end
     temp_board_array
+  end
+
+  def player_piece?(piece, player)
+    piece.color == player
   end
 
   def enemy_piece?(piece, possible_enemy)
