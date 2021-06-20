@@ -173,6 +173,7 @@ class Board
       direction.each do |possible_attack|
         # binding.pry
         board_square = get_piece(possible_attack, possible_moves_board)
+        break if board_square.nil?
 
         if enemy_piece?(piece, board_square)
           @available_attacks << possible_attack
@@ -217,6 +218,8 @@ class Board
   end
 
   def enemy_piece?(piece, possible_enemy)
+    # binding.pry
+    return false if possible_enemy == POSSIBLE_MOVE
     piece.color != possible_enemy.color unless possible_enemy.nil?
   end
 
