@@ -44,7 +44,7 @@ class Board
     @white = {
       pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
       pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
-      pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [4, 4]),
+      pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
       rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
       bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
       king: King.new('white', [4, 0])
@@ -60,6 +60,8 @@ class Board
     @board_contents = Array.new(8) { [] }
     @captured = []
     @last_move = nil
+    @available_moves = []
+    @available_attacks = []
     default_positions
   end
 
@@ -126,6 +128,7 @@ class Board
   def display_possible_moves(piece)
     # binding.pry
     possible_moves_board = temp_board
+    @available_moves = []
 
     piece_square = possible_moves_board[piece.location[0]][piece.location[1]]
     possible_moves_board[piece.location[0]][piece.location[1]] = piece_square.symbol.on_green
@@ -161,7 +164,21 @@ class Board
         board_square = get_piece(possible_move, possible_moves_board)
         break unless board_square.nil?
 
+        @available_moves << possible_move
         possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
+      end
+    end
+
+    piece.possible_attacks.each do |direction|
+      direction.each do |possible_attack|
+        # binding.pry
+        board_square = get_piece(possible_attack, possible_moves_board)
+
+        if enemy_piece?(piece, board_square)
+          @available_attacks << possible_attack
+          possible_moves_board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
+          break
+        end
       end
     end
 
@@ -205,12 +222,15 @@ class Board
 
   def can_move?(piece, target)
     target_piece = get_piece(target)
-    piece.possible_moves.include?(target) && target_piece.nil?
+    # piece.possible_moves.include?(target) && target_piece.nil?
+    @available_moves.include?(target) && target_piece.nil?
   end
 
   def can_attack?(piece, target)
+    # binding.pry
     target_piece = get_piece(target)
-    piece.possible_attacks.include?(target) && enemy_piece?(piece, target_piece)
+    # piece.possible_attacks.include?(target) && enemy_piece?(piece, target_piece)
+    @available_attacks.include?(target)
   end
 
   def move(piece, target_location)
