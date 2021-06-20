@@ -22,10 +22,29 @@ class Board
 
   # def initialize(board_contents = Array.new(8) { [] })
   def initialize
+
+    # temporary backup values:
+    # @white = {
+    #   pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
+    #   pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
+    #   pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
+    #   rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
+    #   bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
+    #   king: King.new('white', [4, 0])
+    # }
+    # @black = {
+    #   pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
+    #   pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
+    #   pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
+    #   rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
+    #   bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
+    #   king: King.new('black', [4, 7])
+    # }
+
     @white = {
       pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
       pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
-      pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
+      pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [4, 4]),
       rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
       bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
       king: King.new('white', [4, 0])
@@ -121,20 +140,38 @@ class Board
     #   end
     # end
 
-    piece.possible_moves.each do |possible_move|
-      # binding.pry
-      # board_square = possible_moves_board[possible_move[0]][possible_move[1]]
-      board_square = get_piece(possible_move, possible_moves_board)
-      possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
-    end
+    # piece.possible_moves.each do |possible_move|
+    #   # binding.pry
+    #   # board_square = possible_moves_board[possible_move[0]][possible_move[1]]
+    #   board_square = get_piece(possible_move, possible_moves_board)
+    #   possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
+    # end
 
-    piece.possible_attacks.each do |possible_attack|
-      board_square = get_piece(possible_attack, possible_moves_board)
+    # piece.possible_moves.each do |possible_move|
+    #   # binding.pry
+    #   board_square = get_piece(possible_move, possible_moves_board)
+    #   break unless board_square.nil?
 
-      if enemy_piece?(piece, board_square)
-        possible_moves_board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
+    #   possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
+    # end
+
+    piece.possible_moves.each do |direction|
+      direction.each do |possible_move|
+        # binding.pry
+        board_square = get_piece(possible_move, possible_moves_board)
+        break unless board_square.nil?
+
+        possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
       end
     end
+
+    # piece.possible_attacks.each do |possible_attack|
+    #   board_square = get_piece(possible_attack, possible_moves_board)
+
+    #   if enemy_piece?(piece, board_square)
+    #     possible_moves_board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
+    #   end
+    # end
 
     to_s(possible_moves_board)
   end
@@ -192,7 +229,6 @@ class Board
   end
 
   def map_coordinates(coordinates)
-    # binding.pry
     # converts chess coordinates to array coordinates
     [coordinates[0].downcase.codepoints[0] - 97, coordinates[1].to_i - 1]
   end
