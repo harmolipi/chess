@@ -51,7 +51,7 @@ class Game
       chosen_move = move_input
       binding.pry
       @chess_board.move(chosen_piece, chosen_move)
-      promote if can_promote?
+      promote(chosen_piece) if can_promote?(chosen_piece)
 
       @chess_board.to_s
       switch_players
@@ -105,11 +105,15 @@ class Game
   end
 
   def can_promote?(piece)
-    piece.is_a?(Pawn) && piece.location[1] == 7
+    piece.is_a?(Pawn) && (@current_player == 'white' ? piece.location[1] == 7 : piece.location[1] == 0)
   end
 
-  def promote
-
+  def promote(piece)
+    @chess_board.to_s
+    puts 'What would you like to promote your pawn to? '
+    promotion = gets.chomp.downcase
+    puts promotion
+    binding.pry
   end
 
   def checkmate?
