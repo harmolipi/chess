@@ -49,6 +49,7 @@ class Game
       chosen_piece = @chess_board.get_piece(coordinates_input)
       @chess_board.display_possible_moves(chosen_piece)
       chosen_move = move_input
+      binding.pry
       @chess_board.move(chosen_piece, chosen_move)
       promote if can_promote?
 
@@ -103,8 +104,8 @@ class Game
     @chess_board.current_player = @current_player
   end
 
-  def can_promote?
-    
+  def can_promote?(piece)
+    piece.is_a?(Pawn) && piece.location[1] == 7
   end
 
   def promote
