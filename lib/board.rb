@@ -4,6 +4,7 @@
 # rubocop: disable Metrics/MethodLength
 # rubocop: disable Metrics/ClassLength
 
+require_relative './game'
 require_relative './pieces/pawn'
 require_relative './pieces/rook'
 require_relative './pieces/knight'
@@ -16,6 +17,7 @@ require 'pry'
 # Class handling the chess board, its moves, and its contents
 class Board
   attr_reader :board_contents, :white
+  attr_writer :current_player
 
   POSSIBLE_MOVE = " \u25CF ".red
   VALID_COORDINATES = /^([A-H]|[a-h])[1-8]$/.freeze
@@ -62,6 +64,7 @@ class Board
     @last_move = nil
     @available_moves = []
     @available_attacks = []
+    @current_player = 'white'
     default_positions
   end
 
@@ -76,9 +79,10 @@ class Board
   #   end
   # end
 
-  def to_s(board_display = @board_contents, system_message = '')
+  def to_s(board_display = @board_contents, system_message = '', player = @current_player)
     # binding.pry
     system 'clear'
+    puts "     -----  CURRENT TURN: #{player.upcase}  -----".green
     puts system_message
     puts "\n"
     row = 8

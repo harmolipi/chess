@@ -50,6 +50,8 @@ class Game
       @chess_board.display_possible_moves(chosen_piece)
       chosen_move = move_input
       @chess_board.move(chosen_piece, chosen_move)
+      promote if can_promote?
+
       @chess_board.to_s
       switch_players
     end
@@ -98,6 +100,15 @@ class Game
 
   def switch_players
     @current_player = @current_player == 'white' ? 'black' : 'white'
+    @chess_board.current_player = @current_player
+  end
+
+  def can_promote?
+    
+  end
+
+  def promote
+
   end
 
   def checkmate?
