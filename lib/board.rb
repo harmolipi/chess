@@ -243,16 +243,24 @@ class Board
   def move(piece, target_location)
     target_piece = get_piece(target_location)
     if can_move?(piece, target_location)
-      @board_contents[piece.location[0]][piece.location[1]] = nil
-      piece.location = target_location
-      @board_contents[target_location[0]][target_location[1]] = piece
+      # @board_contents[piece.location[0]][piece.location[1]] = nil
+      # piece.location = target_location
+      # @board_contents[target_location[0]][target_location[1]] = piece
+      change_piece_location(piece, target_location)
     elsif can_attack?(piece, target_location)
-      @board_contents[piece.location[0]][piece.location[1]] = nil
-      piece.location = target_location
+      # @board_contents[piece.location[0]][piece.location[1]] = nil
+      # piece.location = target_location
       @captured << target_piece
-      @board_contents[target_location[0]][target_location[1]] = piece
+      # @board_contents[target_location[0]][target_location[1]] = piece
+      change_piece_location(piece, target_location)
     end
     @last_move = piece
+  end
+
+  def change_piece_location(piece, target_location)
+    @board_contents[piece.location[0]][piece.location[1]] = nil
+    piece.location = target_location
+    @board_contents[target_location[0]][target_location[1]] = piece
   end
 
   def map_coordinates(coordinates)
