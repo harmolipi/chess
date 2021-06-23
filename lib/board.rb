@@ -246,21 +246,40 @@ class Board
       # @board_contents[piece.location[0]][piece.location[1]] = nil
       # piece.location = target_location
       # @board_contents[target_location[0]][target_location[1]] = piece
-      change_piece_location(piece, target_location)
+      update_piece_location(piece, target_location)
     elsif can_attack?(piece, target_location)
       # @board_contents[piece.location[0]][piece.location[1]] = nil
       # piece.location = target_location
       @captured << target_piece
       # @board_contents[target_location[0]][target_location[1]] = piece
-      change_piece_location(piece, target_location)
+      update_piece_location(piece, target_location)
     end
     @last_move = piece
   end
 
-  def change_piece_location(piece, target_location)
+  def update_piece_location(piece, target_location)
     @board_contents[piece.location[0]][piece.location[1]] = nil
     piece.location = target_location
     @board_contents[target_location[0]][target_location[1]] = piece
+  end
+
+  def can_promote?(piece)
+    piece.is_a?(Pawn) && ((@current_player == 'white' && piece.location[1] == 7) ||
+    (@current_player == 'black' && piece.location[1].zero?))
+  end
+
+  def promote(piece, promotion)
+    new_piece = case promotion.downcase
+                when 'queen'
+                  Queen.new(@current_player, piece.location)
+                when 'rook'
+                  Rook.new(@current_player, piece.location)
+                when 'knight'
+                  Knight.new(@current_player, piece.location)
+                when 'bishop'
+                  Bishop.new(@current_player, piece.location)
+                end
+    update_piece_location(new_piece, piece.location)
   end
 
   def map_coordinates(coordinates)
