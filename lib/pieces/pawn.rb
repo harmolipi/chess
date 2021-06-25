@@ -38,10 +38,11 @@ class Pawn < Piece
   # end
 
   def possible_attacks
-    possible_attacks = Array.new(1) { [] }
+    possible_attacks = Array.new(2) { [] }
     possible_attacks[0] << [@location[0] - 1, @location[1] + 1 * @movement_direction]
-    possible_attacks[0] << [@location[0] + 1, @location[1] + 1 * @movement_direction]
+    possible_attacks[1] << [@location[0] + 1, @location[1] + 1 * @movement_direction]
     possible_attacks[0].select! { |move| valid_move?(move) }
+    possible_attacks[1].select! { |move| valid_move?(move) }
     possible_attacks
   end
 end
