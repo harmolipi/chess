@@ -257,7 +257,9 @@ class Board
     elsif can_attack?(piece, target_location)
       # @board_contents[piece.location[0]][piece.location[1]] = nil
       # piece.location = target_location
+      other_player_pieces = @current_player == 'white' ? @black : @white
       @captured << target_piece
+      other_player_pieces.reject! { |_taken_piece_name, taken_piece| taken_piece == get_piece(target_location) }
       # @board_contents[target_location[0]][target_location[1]] = piece
       update_piece_location(piece, target_location)
     end
