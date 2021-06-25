@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop: disable Metrics/MethodLength
+
 require_relative './board'
 require 'pry'
 
@@ -105,17 +107,16 @@ class Game
     @chess_board.current_player = @current_player
   end
 
-  # def can_promote?(piece)
-  #   # piece.is_a?(Pawn) && (@current_player == 'white' ? piece.location[1] == 7 : piece.location[1] == 0)
-  #   piece.is_a?(Pawn) && ((@current_player == 'white' && piece.location[1] == 7) ||
-  #   (@current_player == 'black' && piece.location[1].zero?))
-  # end
+  def can_promote?(piece)
+    # piece.is_a?(Pawn) && (@current_player == 'white' ? piece.location[1] == 7 : piece.location[1] == 0)
+    piece.is_a?(Pawn) && ((@current_player == 'white' && piece.location[1] == 7) ||
+    (@current_player == 'black' && piece.location[1].zero?))
+  end
 
   def promotion
     @chess_board.to_s
-    puts 'What would you like to promote your pawn to? '
-    promotion = gets.chomp.downcase
-    promotion
+    print "Enter what you'd like to promote your pawn to: "
+    gets.chomp
   end
 
   def checkmate?
@@ -143,3 +144,5 @@ class Game
     puts stalemate? ? 'Stalemate! No winner!' : "Congrats #{@current_player} player, you win!"
   end
 end
+
+# rubocop: enable Metrics/MethodLength
