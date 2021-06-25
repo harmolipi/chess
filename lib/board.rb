@@ -21,6 +21,13 @@ class Board
 
   POSSIBLE_MOVE = " \u25CF ".red
   VALID_COORDINATES = /^([A-H]|[a-h])[1-8]$/.freeze
+  BLUE = 44
+  MAGENTA = 45
+  CYAN = 46
+  GRAY = 47
+  DARK_GRAY = 100
+  LIGHT_RED = 101
+  LIGHT_CYAN = 106
 
   # def initialize(board_contents = Array.new(8) { [] })
   def initialize
@@ -44,7 +51,7 @@ class Board
     # }
 
     @white = {
-      pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
+      pawn1: Pawn.new('white', [0, 6]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
       pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
       pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
       rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
@@ -52,9 +59,9 @@ class Board
       king: King.new('white', [4, 0])
     }
     @black = {
-      pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
+      pawn1: Pawn.new('black', [0, 1]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
       pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
-      pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
+      pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 4]),
       rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
       bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
       king: King.new('black', [4, 7])
@@ -89,7 +96,7 @@ class Board
     board_display.each_with_index.reverse_each do |column, index|
       print "   #{row} "
       column.each_index do |index2|
-        print print_square(index + index2, board_display[index2][index])
+        print square(index + index2, board_display[index2][index])
       end
       print "\n"
       row -= 1
@@ -97,13 +104,13 @@ class Board
     puts '      a  b  c  d  e  f  g  h'
   end
 
-  def print_square(index, contents)
+  def square(index, contents)
     # background = index.odd? ? 'on_gray' : 'on_blue'
     # binding.pry
     background = if @last_move == contents && !@last_move.nil?
-                   106 # using 106 (light blue) for last move, and 42 (green) for current selection
+                   MAGENTA # using 106 (light blue) for last move, and 42 (green) for current selection
                  else
-                   index.odd? ? 47 : 44 # 47 = gray, 44 = blue
+                   index.odd? ? BLUE : CYAN # 47 = gray, 44 = blue
                  end
     square = contents.nil? ? '   ' : contents
     "\e[#{background}m#{square}\e[0m"
@@ -278,7 +285,10 @@ class Board
                   Knight.new(@current_player, piece.location)
                 when 'bishop'
                   Bishop.new(@current_player, piece.location)
+                when 'pawn'
+                  piece
                 end
+    @last_move = new_piece
     update_piece_location(new_piece, piece.location)
   end
 
