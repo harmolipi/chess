@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 # rubocop: disable Metrics/MethodLength
+# rubocop: disable Metrics/ClassLength
 
 require_relative './board'
 require 'pry'
+require 'msgpack'
 
 # Class for chess game rules
 class Game
@@ -57,6 +59,17 @@ class Game
       # @chess_board.promote(chosen_piece) if @chess_board.can_promote?(chosen_piece)
 
       @chess_board.to_s
+      if check?
+        puts 'Check!'
+        if checkmate?
+          puts 'and checkmate!'
+        end
+        temp = gets.chomp
+        # binding.pry
+      else
+        puts 'No check!'
+        temp = gets.chomp
+      end
       switch_players
     end
     end_game
@@ -115,12 +128,39 @@ class Game
 
   def promotion
     @chess_board.to_s
-    print "Enter what you'd like to promote your pawn to: "
+    print "\nEnter what you'd like to promote your pawn to: "
     gets.chomp
   end
 
-  def checkmate?
+  def check?(chess_board = @chess_board)
+    current_player_pieces = @current_player == 'white' ? chess_board.white : chess_board.black
+    other_player_pieces = @current_player == 'white' ? chess_board.black : chess_board.white
+    other_king = other_player_pieces[:king]
+    current_player_pieces.any? do |piece|
+      current_player_pieces[piece[0]].possible_moves.any? { |direction| direction.include?(other_king.location) } ||
+      current_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(other_king.location) }
+    end
+  end
 
+  def copy_board
+    # binding.pry
+    # @chess_board.to_msgpack.unpack
+    Marshal.load(Marshal.dump(@chess_board))
+  end
+
+  def checkmate?
+    current_player_pieces = @current_player == 'white' ? @chess_board.white : @chess_board.black
+    current_king = current_player_pieces[:king]
+    current_player_pieces = @current_player == 'white' ? @chess_board.black : @chess_board.white
+    current_player_pieces.none? do |piece|
+      current_player_pieces[piece[0]].possible_moves.each do |move|
+        temp_board = copy_board
+        # binding.pry
+        temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
+        temp_current_player_pieces[piece[0]].location = move[0]
+        check?(temp_board)
+      end
+    end
   end
 
   def stalemate?
@@ -145,4 +185,5 @@ class Game
   end
 end
 
+# rubocop: enable Metrics/ClassLength
 # rubocop: enable Metrics/MethodLength
