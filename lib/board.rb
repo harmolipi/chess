@@ -3,6 +3,7 @@
 # rubocop: disable Metrics/AbcSize
 # rubocop: disable Metrics/MethodLength
 # rubocop: disable Metrics/ClassLength
+# rubocop: disable Metrics/CyclomaticComplexity
 
 require_relative './game'
 require_relative './pieces/pawn'
@@ -13,10 +14,11 @@ require_relative './pieces/queen'
 require_relative './pieces/king'
 require_relative './colors'
 require 'pry'
+require 'msgpack'
 
 # Class handling the chess board, its moves, and its contents
 class Board
-  attr_reader :board_contents, :white
+  attr_reader :board_contents, :white, :black
   attr_writer :current_player
 
   POSSIBLE_MOVE = " \u25CF ".red
@@ -42,31 +44,100 @@ class Board
     #   king: King.new('white', [4, 0])
     # }
     # @black = {
-    #   pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
+      # pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
+      # pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
+      # pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
+      # rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
+      # bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
+      # king: King.new('black', [4, 7])
+    # }
+
+    normal_board = [
+      {
+        pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
+        pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
+        pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
+        rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
+        bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
+        king: King.new('white', [4, 0])
+      },
+      {
+        pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
+        pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
+        pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
+        rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
+        bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
+        king: King.new('black', [4, 7])
+      }
+    ]
+
+    almost_check = [
+      {
+        pawn1: Pawn.new('white', [2, 6]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
+        pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
+        pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
+        rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
+        bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
+        king: King.new('white', [4, 0])
+      },
+      {
+        pawn1: Pawn.new('black', [0, 1]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 4]),
+        pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
+        pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 4]),
+        rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
+        bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
+        king: King.new('black', [4, 7])
+      }
+    ]
+
+    checkmate_board = [
+      {
+        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 4])
+      },
+      {
+        king: King.new('black', [4, 7])
+      }
+    ]
+
+    # @white = {
+    #   pawn1: Pawn.new('white', [2, 6]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
+    #   pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
+    #   pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
+    #   rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
+    #   bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
+    #   king: King.new('white', [4, 0])
+    # }
+
+    # @white = [
+    #   Pawn.new('white', [2, 6]), Pawn.new('white', [1, 1]), Pawn.new('white', [2, 1]),
+    #   Pawn.new('white', [3, 1]), Pawn.new('white', [4, 1]), Pawn.new('white', [5, 1]),
+    #   Pawn.new('white', [6, 1]), Pawn.new('white', [7, 1]), Rook.new('white', [0, 0]),
+    #   Rook.new('white', [7, 0]), Knight.new('white', [1, 0]), Knight.new('white', [6, 0]),
+    #   Bishop.new('white', [2, 0]), Bishop.new('white', [5, 0]), Queen.new('white', [3, 0]),
+    #   King.new('white', [4, 0])
+    # ]
+
+    # @black = {
+    #   pawn1: Pawn.new('black', [0, 1]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 4]),
     #   pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
-    #   pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
+    #   pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 4]),
     #   rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
     #   bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
     #   king: King.new('black', [4, 7])
     # }
 
-    @white = {
-      pawn1: Pawn.new('white', [0, 6]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
-      pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
-      pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
-      rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
-      bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
-      king: King.new('white', [4, 0])
-    }
-    @black = {
-      pawn1: Pawn.new('black', [0, 1]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
-      pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
-      pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 4]),
-      rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
-      bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
-      king: King.new('black', [4, 7])
-    }
-    @board_contents = Array.new(8) { [] }
+    # @black = [
+    #   Pawn.new('black', [0, 1]), Pawn.new('black', [1, 6]), Pawn.new('black', [2, 4]),
+    #   Pawn.new('black', [3, 6]), Pawn.new('black', [4, 6]), Pawn.new('black', [5, 6]),
+    #   Pawn.new('black', [6, 6]), Pawn.new('black', [7, 6]), Rook.new('black', [0, 4]),
+    #   Rook.new('black', [7, 7]), Knight.new('black', [1, 7]), Knight.new('black', [6, 7]),
+    #   Bishop.new('black', [2, 7]), Bishop.new('black', [5, 7]), Queen.new('black', [3, 7]),
+    #   King.new('black', [4, 7])
+    # ]
+    @white = checkmate_board[0]
+    @black = checkmate_board[1]
+    # @board_contents = Array.new(8) { [] }
+    @board_contents = Array.new(8) { Array.new(8) }
     @captured = []
     @last_move = nil
     @available_moves = []
@@ -137,7 +208,6 @@ class Board
   end
 
   def display_possible_moves(piece)
-    # binding.pry
     possible_moves_board = temp_board
     @available_moves = []
 
@@ -278,8 +348,11 @@ class Board
   end
 
   def promote(piece, promotion)
+    current_player_pieces = @current_player == 'white' ? @white : @black
+    old_piece_key = current_player_pieces.find { |_key, value| value == piece }[0]
     new_piece = case promotion.downcase
                 when 'queen'
+                  # binding.pry
                   Queen.new(@current_player, piece.location)
                 when 'rook'
                   Rook.new(@current_player, piece.location)
@@ -290,6 +363,9 @@ class Board
                 when 'pawn'
                   piece
                 end
+    @current_player == 'white' ? @white[old_piece_key] = new_piece : @black[old_piece_key] = new_piece
+    # need to correctly add promoted piece to player's pieces
+    # binding.pry
     @last_move = new_piece
     update_piece_location(new_piece, piece.location)
   end
@@ -317,6 +393,8 @@ class Board
     # @board_contents = [[@white[rook1], @white[pawn1], EMPTY_CELL, EMPTY_CELL,
     #                     EMPTY_CELL, EMPTY_CELL, @black[pawn1], @black[rook1]],
     #                   ]
+    # commented while changing pieces to arrays
+    binding.pry
     @white.each_value do |piece|
       @board_contents[piece.location[0]][piece.location[1]] = piece
     end
@@ -324,9 +402,18 @@ class Board
     @black.each_value do |piece|
       @board_contents[piece.location[0]][piece.location[1]] = piece
     end
+
+    # @white.each do |piece|
+    #   @board_contents[piece.location[0]][piece.location[1]] = piece
+    # end
+
+    # @black.each do |piece|
+    #   @board_contents[piece.location[0]][piece.location[1]] = piece
+    # end
   end
 end
 
+# rubocop: enable Metrics/CyclomaticComplexity
 # rubocop: enable Metrics/ClassLength
 # rubocop: enable Metrics/MethodLength
 # rubocop: enable Metrics/AbcSize
