@@ -394,7 +394,6 @@ class Board
     #                     EMPTY_CELL, EMPTY_CELL, @black[pawn1], @black[rook1]],
     #                   ]
     # commented while changing pieces to arrays
-    binding.pry
     @white.each_value do |piece|
       @board_contents[piece.location[0]][piece.location[1]] = piece
     end
