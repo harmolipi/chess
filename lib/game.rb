@@ -2,6 +2,8 @@
 
 # rubocop: disable Metrics/MethodLength
 # rubocop: disable Metrics/ClassLength
+# rubocop: disable Metrics/AbcSize
+# rubocop: disable Metrics/CyclomaticComplexity
 
 require_relative './board'
 require 'pry'
@@ -138,7 +140,7 @@ class Game
     other_king = other_player_pieces[:king]
     current_player_pieces.any? do |piece|
       current_player_pieces[piece[0]].possible_moves.any? { |direction| direction.include?(other_king.location) } ||
-      current_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(other_king.location) }
+        current_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(other_king.location) }
     end
   end
 
@@ -152,14 +154,20 @@ class Game
     current_player_pieces = @current_player == 'white' ? @chess_board.white : @chess_board.black
     other_player_pieces = @current_player == 'white' ? @chess_board.black : @chess_board.white
     other_king = other_player_pieces[:king]
-    current_player_pieces.none? do |piece|
-      current_player_pieces[piece[0]].possible_moves.each do |move|
+    other_player_pieces.any? do |piece|
+      other_player_piece = other_player_pieces[piece[0]]
+      other_player_piece.possible_moves.each do |move|
+        next if move[0].nil?
+
         temp_board = copy_board
+        temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
+        temp_other_player_piece = temp_other_player_pieces[piece[0]]
+        temp_board.move(temp_other_player_piece, move[0], temp_board)
         # binding.pry
-        temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
+        # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
         # temp_current_player_pieces[piece[0]].location = move[0]
-        other_king.location = move[0]
-        check?(temp_board)
+        # other_king.location = move[0]
+        check?(temp_board) ? false : true
       end
     end
   end
@@ -186,5 +194,7 @@ class Game
   end
 end
 
+# rubocop: enable Metrics/CyclomaticComplexity
+# rubocop: enable Metrics/AbcSize
 # rubocop: enable Metrics/ClassLength
 # rubocop: enable Metrics/MethodLength

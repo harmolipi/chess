@@ -92,7 +92,7 @@ class Board
 
     checkmate_board = [
       {
-        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 4])
+        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 3])
       },
       {
         king: King.new('black', [4, 7])
@@ -250,6 +250,8 @@ class Board
       end
     end
 
+    # possible_moves_board = update_possible_moves(piece, possible_moves_board)
+
     piece.possible_attacks.each do |direction|
       direction.each do |possible_attack|
         # binding.pry
@@ -275,6 +277,21 @@ class Board
     to_s(possible_moves_board)
   end
 
+  def update_possible_moves(piece, board)
+    @available_moves = []
+    piece.possible_moves.each do |direction|
+      direction.each do |possible_move|
+        # binding.pry
+        board_square = get_piece(possible_move, board)
+        break unless board_square.nil?
+
+        @available_moves << possible_move
+        board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
+      end
+    end
+    board
+  end
+
   def display_selection(selection)
     selection_board = temp_board
 
@@ -287,10 +304,12 @@ class Board
   def temp_board
     # copies @board_contents to a temporary local board array
     temp_board_array = []
+    # binding.pry
     @board_contents.each_with_index do |column, index|
       temp_board_array << []
-      column.each { |square| temp_board_array[index] << square }
+      column.each { |square| temp_board_array[index] << square.dup }
     end
+    # binding.pry
     temp_board_array
   end
 
@@ -301,11 +320,15 @@ class Board
   def enemy_piece?(piece, possible_enemy)
     # binding.pry
     return false if possible_enemy == POSSIBLE_MOVE
+
     piece.color != possible_enemy.color unless possible_enemy.nil?
   end
 
   def can_move?(piece, target)
+    # binding.pry
+    move_board = temp_board
     target_piece = get_piece(target)
+    update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
     # piece.possible_moves.include?(target) && target_piece.nil?
     @available_moves.include?(target) && target_piece.nil?
   end
@@ -317,7 +340,8 @@ class Board
     @available_attacks.include?(target)
   end
 
-  def move(piece, target_location)
+  def move(piece, target_location, chess_board = @board_contents)
+    # binding.pry
     target_piece = get_piece(target_location)
     if can_move?(piece, target_location)
       # @board_contents[piece.location[0]][piece.location[1]] = nil
@@ -336,10 +360,10 @@ class Board
     @last_move = piece
   end
 
-  def update_piece_location(piece, target_location)
-    @board_contents[piece.location[0]][piece.location[1]] = nil
+  def update_piece_location(piece, target_location, chess_board = @board_contents)
+    chess_board[piece.location[0]][piece.location[1]] = nil
     piece.location = target_location
-    @board_contents[target_location[0]][target_location[1]] = piece
+    chess_board[target_location[0]][target_location[1]] = piece
   end
 
   def can_promote?(piece)
