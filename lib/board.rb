@@ -92,7 +92,7 @@ class Board
 
     checkmate_board = [
       {
-        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 3])
+        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 4])
       },
       {
         king: King.new('black', [4, 7])

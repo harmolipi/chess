@@ -154,10 +154,12 @@ class Game
     current_player_pieces = @current_player == 'white' ? @chess_board.white : @chess_board.black
     other_player_pieces = @current_player == 'white' ? @chess_board.black : @chess_board.white
     other_king = other_player_pieces[:king]
+    is_checkmate = false
     other_player_pieces.any? do |piece|
       other_player_piece = other_player_pieces[piece[0]]
       other_player_piece.possible_moves.each do |move|
         next if move[0].nil?
+        # binding.pry
 
         temp_board = copy_board
         temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
@@ -167,9 +169,16 @@ class Game
         # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
         # temp_current_player_pieces[piece[0]].location = move[0]
         # other_king.location = move[0]
-        check?(temp_board) ? false : true
+        # check?(temp_board) ? false : true
+        unless check?(temp_board)
+          is_checkmate = false
+          break
+        end
+        is_checkmate = true
       end
+      is_checkmate
     end
+    
   end
 
   def stalemate?
