@@ -90,12 +90,30 @@ class Board
       }
     ]
 
-    checkmate_board = [
+    checkmate_board1 = [
       {
         queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 4])
       },
       {
         king: King.new('black', [4, 7])
+      }
+    ]
+
+    checkmate_board2 = [
+      {
+        pawn1: Pawn.new('white', [4, 6]), pawn2: Pawn.new('white', [3, 4]), king: King.new('white', [4, 5])
+      },
+      {
+        king: King.new('black', [4, 7])
+      }
+    ]
+
+    checkmate_board3 = [
+      {
+        rook1: Rook.new('white', [5, 5]), rook2: Rook.new('white', [3, 3]), king: King.new('white', [4, 0])
+      },
+      {
+        king: King.new('black', [7, 7])
       }
     ]
 
@@ -134,8 +152,8 @@ class Board
     #   Bishop.new('black', [2, 7]), Bishop.new('black', [5, 7]), Queen.new('black', [3, 7]),
     #   King.new('black', [4, 7])
     # ]
-    @white = checkmate_board[0]
-    @black = checkmate_board[1]
+    @white = checkmate_board3[0]
+    @black = checkmate_board3[1]
     # @board_contents = Array.new(8) { [] }
     @board_contents = Array.new(8) { Array.new(8) }
     @captured = []
@@ -335,12 +353,17 @@ class Board
 
   def can_attack?(piece, target)
     # binding.pry
-    target_piece = get_piece(target)
+    # target_piece = get_piece(target) ##
     # piece.possible_attacks.include?(target) && enemy_piece?(piece, target_piece)
-    @available_attacks.include?(target)
+    # @available_attacks.include?(target) ##
+    piece.possible_attacks.any? do |direction|
+      direction.any? do |attack|
+        attack == target
+      end
+    end
   end
 
-  def move(piece, target_location, chess_board = @board_contents)
+  def move(piece, target_location)
     # binding.pry
     target_piece = get_piece(target_location)
     if can_move?(piece, target_location)

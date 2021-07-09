@@ -157,28 +157,57 @@ class Game
     is_checkmate = false
     other_player_pieces.any? do |piece|
       other_player_piece = other_player_pieces[piece[0]]
-      other_player_piece.possible_moves.each do |move|
-        next if move[0].nil?
-        # binding.pry
+      other_player_piece.possible_moves.each do |direction|
+        direction.each do |move|
+          next if move.nil?
+          # binding.pry
 
-        temp_board = copy_board
-        temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
-        temp_other_player_piece = temp_other_player_pieces[piece[0]]
-        temp_board.move(temp_other_player_piece, move[0], temp_board)
-        # binding.pry
-        # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
-        # temp_current_player_pieces[piece[0]].location = move[0]
-        # other_king.location = move[0]
-        # check?(temp_board) ? false : true
-        unless check?(temp_board)
-          is_checkmate = false
-          break
+          temp_board = copy_board
+          temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
+          temp_other_player_piece = temp_other_player_pieces[piece[0]]
+          temp_board.move(temp_other_player_piece, move)
+          # binding.pry
+          # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
+          # temp_current_player_pieces[piece[0]].location = move[0]
+          # other_king.location = move[0]
+          # check?(temp_board) ? false : true
+
+          unless check?(temp_board)
+            is_checkmate = false
+            break
+          end
+          is_checkmate = true
         end
-        is_checkmate = true
+        break unless is_checkmate
       end
+      
+      other_player_piece.possible_attacks.each do |direction|
+        direction.each do |attack|
+          next if attack.nil?
+
+          # binding.pry
+
+          temp_board = copy_board
+          temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
+          temp_other_player_piece = temp_other_player_pieces[piece[0]]
+          temp_board.move(temp_other_player_piece, attack)
+          # binding.pry
+          # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
+          # temp_current_player_pieces[piece[0]].location = move[0]
+          # other_king.location = move[0]
+          # check?(temp_board) ? false : true
+
+          unless check?(temp_board)
+            is_checkmate = false
+            break
+          end
+          is_checkmate = true
+        end
+        break unless is_checkmate
+      end
+
       is_checkmate
     end
-    
   end
 
   def stalemate?
