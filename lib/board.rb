@@ -113,7 +113,7 @@ class Board
         rook1: Rook.new('white', [3, 7]), rook2: Rook.new('white', [5, 4]), king: King.new('white', [4, 0])
       },
       {
-        king: King.new('black', [7, 7])
+        king: King.new('black', [7, 6])
       }
     ]
 
@@ -226,7 +226,7 @@ class Board
   end
 
   def display_possible_moves(piece)
-    possible_moves_board = temp_board
+    possible_moves_board = temp_board_array
     @available_moves = []
 
     piece_square = possible_moves_board[piece.location[0]][piece.location[1]]
@@ -295,6 +295,118 @@ class Board
     to_s(possible_moves_board)
   end
 
+  def check?(chess_board = self, player = @current_player)
+    current_player_pieces = player == 'white' ? chess_board.white : chess_board.black
+    other_player_pieces = player == 'white' ? chess_board.black : chess_board.white
+    other_king = other_player_pieces[:king]
+    current_player_pieces.any? do |piece|
+      current_player_pieces[piece[0]].possible_moves.any? { |direction| direction.include?(other_king.location) } ||
+        current_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(other_king.location) }
+    end
+  end
+
+  def checkmate?
+    # binding.pry
+    current_player_pieces = @current_player == 'white' ? @white : @black
+    other_player_pieces = @current_player == 'white' ? @black : @white
+    other_king = other_player_pieces[:king]
+    is_checkmate = true
+    other_player_pieces.each do |piece|
+      # binding.pry
+      other_player_piece = other_player_pieces[piece[0]]
+      other_player_piece.possible_moves.each do |direction|
+        # binding.pry
+        next if direction.empty?
+        direction.each do |move|
+          next if move.nil?
+          # binding.pry
+
+          # temp_board = copy_board
+          # temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
+          # temp_other_player_piece = temp_other_player_pieces[piece[0]]
+          # temp_board.move(temp_other_player_piece, move)
+
+          unless test_possible_check(other_player_piece, move)
+            is_checkmate = false
+            break
+          end
+
+          # binding.pry
+          # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
+          # temp_current_player_pieces[piece[0]].location = move[0]
+          # other_king.location = move[0]
+          # check?(temp_board) ? false : true
+
+          # unless check?(temp_board)
+          #   is_checkmate = false
+          #   break
+          # end
+
+          # unless check?(temp_board)
+          #   is_checkmate = false
+          #   break
+          # end
+          # is_checkmate = true
+        end
+        break unless is_checkmate
+      end
+      
+      return is_checkmate unless is_checkmate
+
+      other_player_piece.possible_attacks.each do |direction|
+        direction.each do |attack|
+          next if attack.nil?
+
+          # binding.pry
+
+          # temp_board = copy_board
+          # temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
+          # temp_other_player_piece = temp_other_player_pieces[piece[0]]
+          # temp_board.move(temp_other_player_piece, attack)
+
+          unless test_possible_check(other_player_piece, attack)
+            is_checkmate = false
+            break
+          end
+
+          # binding.pry
+          # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
+          # temp_current_player_pieces[piece[0]].location = move[0]
+          # other_king.location = move[0]
+          # check?(temp_board) ? false : true
+
+          # unless check?(temp_board)
+          #   is_checkmate = false
+          #   break
+          # end
+
+          # unless check?(temp_board)
+          #   is_checkmate = false
+          #   break
+          # end
+          # is_checkmate = true
+        end
+        break unless is_checkmate
+      end
+      is_checkmate
+    end
+  end
+
+  def test_possible_check(piece, move, player = @current_player)
+    # binding.pry
+    temp_board = copy_board
+    temp_other_player_pieces = player == 'white' ? temp_board.black : temp_board.white
+    # temp_other_player_piece = temp_other_player_pieces[piece[0]]
+    temp_other_player_piece = temp_board.get_piece(piece.location)
+    temp_board.move(temp_other_player_piece, move)
+    check?(temp_board, player)
+  end
+
+  def copy_board(chess_board = self)
+    # binding.pry
+    Marshal.load(Marshal.dump(chess_board))
+  end
+
   def update_possible_moves(piece, board)
     # binding.pry
     @available_moves = []
@@ -312,7 +424,7 @@ class Board
   end
 
   def display_selection(selection)
-    selection_board = temp_board
+    selection_board = temp_board_array
 
     board_square = selection_board[selection[0]][selection[1]]
     selection_board[selection[0]][selection[1]] = board_square.symbol.on_green
@@ -320,16 +432,16 @@ class Board
     to_s(selection_board)
   end
 
-  def temp_board
+  def temp_board_array
     # copies @board_contents to a temporary local board array
-    temp_board_array = []
+    board_array = []
     # binding.pry
     @board_contents.each_with_index do |column, index|
-      temp_board_array << []
-      column.each { |square| temp_board_array[index] << square.dup }
+      board_array << []
+      column.each { |square| board_array[index] << square.dup }
     end
     # binding.pry
-    temp_board_array
+    board_array
   end
 
   def player_piece?(piece, player)
@@ -345,7 +457,7 @@ class Board
 
   def can_move?(piece, target)
     # binding.pry
-    move_board = temp_board
+    move_board = temp_board_array
     target_piece = get_piece(target)
     update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
     # piece.possible_moves.include?(target) && target_piece.nil?

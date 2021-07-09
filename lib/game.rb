@@ -62,17 +62,17 @@ class Game
       # @chess_board.promote(chosen_piece) if @chess_board.can_promote?(chosen_piece)
 
       @chess_board.to_s
-      if check?
-        puts 'Check!'
-        if checkmate?
-          puts 'and checkmate!'
-        end
-        temp = gets.chomp
-        # binding.pry
-      else
-        puts 'No check!'
-        temp = gets.chomp
-      end
+      # if check?
+      #   puts 'Check!'
+      #   if checkmate?
+      #     puts 'and checkmate!'
+      #   end
+      #   temp = gets.chomp
+      #   # binding.pry
+      # else
+      #   puts 'No check!'
+      #   temp = gets.chomp
+      # end
 
       @checkmate = true if checkmate?
       switch_players
@@ -81,7 +81,9 @@ class Game
   end
 
   def check_move(piece, move)
-    (@chess_board.can_move?(piece, move) || @chess_board.can_attack?(piece, move))
+    # binding.pry
+    player = @current_player == 'white' ? 'black' : 'white'
+    (@chess_board.can_move?(piece, move) || @chess_board.can_attack?(piece, move)) && !@chess_board.test_possible_check(piece, move, player)
   end
 
   def coordinates_input
@@ -143,9 +145,9 @@ class Game
     gets.chomp
   end
 
-  def check?(chess_board = @chess_board)
-    current_player_pieces = @current_player == 'white' ? chess_board.white : chess_board.black
-    other_player_pieces = @current_player == 'white' ? chess_board.black : chess_board.white
+  def check?(chess_board = @chess_board, player = @current_player)
+    current_player_pieces = player == 'white' ? chess_board.white : chess_board.black
+    other_player_pieces = player == 'white' ? chess_board.black : chess_board.white
     other_king = other_player_pieces[:king]
     current_player_pieces.any? do |piece|
       current_player_pieces[piece[0]].possible_moves.any? { |direction| direction.include?(other_king.location) } ||
@@ -180,7 +182,7 @@ class Game
           # temp_other_player_piece = temp_other_player_pieces[piece[0]]
           # temp_board.move(temp_other_player_piece, move)
 
-          unless test_possible_check(piece, move)
+          unless test_possible_check(other_player_piece, move)
             is_checkmate = false
             break
           end
@@ -218,7 +220,7 @@ class Game
           # temp_other_player_piece = temp_other_player_pieces[piece[0]]
           # temp_board.move(temp_other_player_piece, attack)
 
-          unless test_possible_check(piece, attack)
+          unless test_possible_check(other_player_piece, attack)
             is_checkmate = false
             break
           end
@@ -246,13 +248,14 @@ class Game
     end
   end
 
-  def test_possible_check(piece, move)
+  def test_possible_check(piece, move, player = @current_player)
     # binding.pry
     temp_board = copy_board
-    temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
-    temp_other_player_piece = temp_other_player_pieces[piece[0]]
+    temp_other_player_pieces = player == 'white' ? temp_board.black : temp_board.white
+    # temp_other_player_piece = temp_other_player_pieces[piece[0]]
+    temp_other_player_piece = temp_board.get_piece(piece.location)
     temp_board.move(temp_other_player_piece, move)
-    check?(temp_board)
+    check?(temp_board, player)
   end
 
   def stalemate?
