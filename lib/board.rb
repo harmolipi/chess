@@ -110,7 +110,7 @@ class Board
 
     checkmate_board3 = [
       {
-        rook1: Rook.new('white', [5, 5]), rook2: Rook.new('white', [3, 3]), king: King.new('white', [4, 0])
+        rook1: Rook.new('white', [3, 7]), rook2: Rook.new('white', [5, 4]), king: King.new('white', [4, 0])
       },
       {
         king: King.new('black', [7, 7])
@@ -296,6 +296,7 @@ class Board
   end
 
   def update_possible_moves(piece, board)
+    # binding.pry
     @available_moves = []
     piece.possible_moves.each do |direction|
       direction.each do |possible_move|

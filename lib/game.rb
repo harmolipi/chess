@@ -20,6 +20,7 @@ class Game
     @current_player = 'white'
     @chess_board = Board.new
     @game_over = false
+    @checkmate = false
   end
 
   def intro_text
@@ -54,7 +55,7 @@ class Game
       @chess_board.to_s
       chosen_piece = @chess_board.get_piece(coordinates_input)
       @chess_board.display_possible_moves(chosen_piece)
-      chosen_move = move_input
+      chosen_move = move_input(chosen_piece)
       # binding.pry
       @chess_board.move(chosen_piece, chosen_move)
       @chess_board.promote(chosen_piece, promotion) if @chess_board.can_promote?(chosen_piece)
@@ -72,9 +73,15 @@ class Game
         puts 'No check!'
         temp = gets.chomp
       end
+
+      @checkmate = true if checkmate?
       switch_players
     end
     end_game
+  end
+
+  def check_move(piece, move)
+    (@chess_board.can_move?(piece, move) || @chess_board.can_attack?(piece, move))
   end
 
   def coordinates_input
@@ -94,11 +101,13 @@ class Game
     end
   end
 
-  def move_input
+  def move_input(piece)
     loop do
       print "\nEnter coordinates for the square you'd like to move to: "
       coordinates = gets.chomp
-      return map_coordinates(coordinates) if valid_coordinates?(coordinates)
+      if valid_coordinates?(coordinates) && check_move(piece, map_coordinates(coordinates))
+        return map_coordinates(coordinates)
+      end
 
       puts 'Invalid entry, please try again.'.red
     end
@@ -151,72 +160,107 @@ class Game
   end
 
   def checkmate?
+    # binding.pry
     current_player_pieces = @current_player == 'white' ? @chess_board.white : @chess_board.black
     other_player_pieces = @current_player == 'white' ? @chess_board.black : @chess_board.white
     other_king = other_player_pieces[:king]
-    is_checkmate = false
-    other_player_pieces.any? do |piece|
+    is_checkmate = true
+    other_player_pieces.each do |piece|
+      # binding.pry
       other_player_piece = other_player_pieces[piece[0]]
       other_player_piece.possible_moves.each do |direction|
+        # binding.pry
+        next if direction.empty?
         direction.each do |move|
           next if move.nil?
           # binding.pry
 
-          temp_board = copy_board
-          temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
-          temp_other_player_piece = temp_other_player_pieces[piece[0]]
-          temp_board.move(temp_other_player_piece, move)
+          # temp_board = copy_board
+          # temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
+          # temp_other_player_piece = temp_other_player_pieces[piece[0]]
+          # temp_board.move(temp_other_player_piece, move)
+
+          unless test_possible_check(piece, move)
+            is_checkmate = false
+            break
+          end
+
           # binding.pry
           # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
           # temp_current_player_pieces[piece[0]].location = move[0]
           # other_king.location = move[0]
           # check?(temp_board) ? false : true
 
-          unless check?(temp_board)
-            is_checkmate = false
-            break
-          end
-          is_checkmate = true
+          # unless check?(temp_board)
+          #   is_checkmate = false
+          #   break
+          # end
+
+          # unless check?(temp_board)
+          #   is_checkmate = false
+          #   break
+          # end
+          # is_checkmate = true
         end
         break unless is_checkmate
       end
       
+      return is_checkmate unless is_checkmate
+
       other_player_piece.possible_attacks.each do |direction|
         direction.each do |attack|
           next if attack.nil?
 
           # binding.pry
 
-          temp_board = copy_board
-          temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
-          temp_other_player_piece = temp_other_player_pieces[piece[0]]
-          temp_board.move(temp_other_player_piece, attack)
+          # temp_board = copy_board
+          # temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
+          # temp_other_player_piece = temp_other_player_pieces[piece[0]]
+          # temp_board.move(temp_other_player_piece, attack)
+
+          unless test_possible_check(piece, attack)
+            is_checkmate = false
+            break
+          end
+
           # binding.pry
           # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
           # temp_current_player_pieces[piece[0]].location = move[0]
           # other_king.location = move[0]
           # check?(temp_board) ? false : true
 
-          unless check?(temp_board)
-            is_checkmate = false
-            break
-          end
-          is_checkmate = true
+          # unless check?(temp_board)
+          #   is_checkmate = false
+          #   break
+          # end
+
+          # unless check?(temp_board)
+          #   is_checkmate = false
+          #   break
+          # end
+          # is_checkmate = true
         end
         break unless is_checkmate
       end
-
       is_checkmate
     end
   end
 
-  def stalemate?
+  def test_possible_check(piece, move)
+    # binding.pry
+    temp_board = copy_board
+    temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
+    temp_other_player_piece = temp_other_player_pieces[piece[0]]
+    temp_board.move(temp_other_player_piece, move)
+    check?(temp_board)
+  end
 
+  def stalemate?
+    false
   end
 
   def game_over?
-    # checkmate?
-    false
+    @checkmate || stalemate?
   end
 
   def game_won
