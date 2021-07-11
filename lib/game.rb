@@ -22,6 +22,7 @@ class Game
     @game_over = false
     @checkmate = false
     @check_message = ''
+    @move_counter = 0
   end
 
   def intro_text
@@ -51,7 +52,6 @@ class Game
   end
 
   def two_player_game_loop
-    # binding.pry
     until game_over?
       @chess_board.to_s(@chess_board.board_contents, @check_message) # eventually change .to_s to .print_board
       chosen_piece = @chess_board.get_piece(coordinates_input)
@@ -59,22 +59,7 @@ class Game
       chosen_move = move_input(chosen_piece)
       move_or_attack(chosen_piece, chosen_move)
       @chess_board.promote(chosen_piece, promotion) if @chess_board.can_promote?(chosen_piece)
-      # @chess_board.promote(chosen_piece) if @chess_board.can_promote?(chosen_piece)
-
       @chess_board.to_s
-      # if @chess_board.check2?
-      #   puts 'Check!'
-      #   if checkmate?
-      #     puts 'and checkmate!'
-      #   end
-      #   temp = gets.chomp
-      #   # binding.pry
-      # else
-      #   puts 'No check!'
-      #   temp = gets.chomp
-      # end
-
-      # @checkmate = true if @chess_board.checkmate?
       end_game_conditions
       switch_players
     end
@@ -83,14 +68,15 @@ class Game
 
   def move_or_attack(piece, target)
     if @chess_board.can_move?(piece, target)
-      @chess_board.move2(piece, target)
+      @chess_board.move(piece, target)
+      @move_counter += 1
     elsif @chess_board.can_attack?(piece, target)
-      @chess_board.attack2(piece, target)
+      @chess_board.attack(piece, target)
+      @move_counter = 0
     end
   end
 
   def check_move(piece, move)
-    # (@chess_board.can_move?(piece, move) || @chess_board.can_attack?(piece, move)) && !@chess_board.test_possible_check(piece, move, @current_player)
     @chess_board.any_possible_moves?(piece) && !@chess_board.test_possible_check(piece, move, @current_player)
   end
 
@@ -98,12 +84,8 @@ class Game
     loop do
       print "\nEnter coordinates (e.g. 'a2') for the piece you want to move: "
       coordinates = gets.chomp
-
       return map_coordinates(coordinates) if valid_selection?(coordinates)
 
-      # return map_coordinates(coordinates) if valid_coordinates?(coordinates)
-      # system 'clear'
-      # puts 'Invalid entry, please try again.'.red
       @chess_board.to_s(@chess_board.board_contents, 'Invalid entry, please try again.'.red)
     end
   end
@@ -149,7 +131,6 @@ class Game
   end
 
   def can_promote?(piece)
-    # piece.is_a?(Pawn) && (@current_player == 'white' ? piece.location[1] == 7 : piece.location[1] == 0)
     piece.is_a?(Pawn) && ((@current_player == 'white' && piece.location[1] == 7) ||
     (@current_player == 'black' && piece.location[1].zero?))
   end
@@ -171,8 +152,6 @@ class Game
   end
 
   def copy_board
-    # binding.pry
-    # @chess_board.to_msgpack.unpack
     Marshal.load(Marshal.dump(@chess_board))
   end
 
@@ -209,23 +188,6 @@ class Game
             is_checkmate = false
             break
           end
-
-          # binding.pry
-          # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
-          # temp_current_player_pieces[piece[0]].location = move[0]
-          # other_king.location = move[0]
-          # check?(temp_board) ? false : true
-
-          # unless check?(temp_board)
-          #   is_checkmate = false
-          #   break
-          # end
-
-          # unless check?(temp_board)
-          #   is_checkmate = false
-          #   break
-          # end
-          # is_checkmate = true
         end
         break unless is_checkmate
       end
@@ -236,7 +198,7 @@ class Game
   def test_possible_check(piece, move, player = @current_player)
     temp_board = copy_board
     temp_other_player_piece = temp_board.get_piece(piece.location)
-    temp_board.move2(temp_other_player_piece, move)
+    temp_board.move(temp_other_player_piece, move)
     check?(temp_board, player)
   end
 
@@ -245,8 +207,7 @@ class Game
   end
 
   def end_game_conditions
-    # binding.pry
-    if @chess_board.check2?
+    if @chess_board.check?
       @check_message = 'Check!'.blue
       if @chess_board.checkmate?
         @checkmate = true
