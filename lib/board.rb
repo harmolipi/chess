@@ -73,7 +73,7 @@ class Board
 
     checkmate_board1 = [
       {
-        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 4])
+        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 4]), king: King.new('white', [0, 0])
       },
       {
         king: King.new('black', [4, 7])
@@ -98,8 +98,8 @@ class Board
       }
     ]
 
-    @white = checkmate_board3[0]
-    @black = checkmate_board3[1]
+    @white = checkmate_board1[0]
+    @black = checkmate_board1[1]
     @board_contents = Array.new(8) { Array.new(8) }
     @captured = []
     @last_move = nil
@@ -164,7 +164,7 @@ class Board
     piece.possible_attacks.each do |direction|
       direction.each do |possible_attack|
         board_square = get_piece(possible_attack, board)
-        break unless can_attack?(piece, possible_attack) && enemy_piece?(piece, board_square)
+        break unless can_attack?(piece, possible_attack)
 
         @available_attacks << possible_attack
         board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
@@ -235,7 +235,7 @@ class Board
 
     player_pieces = player == 'white' ? @white : @black
     player_pieces.none? do |piece|
-      any_possible_moves?(player_pieces[piece[0]])
+      any_possible_moves?(player_pieces[piece[0]], player)
     end
   end
 
@@ -276,14 +276,14 @@ class Board
     piece.color != possible_enemy.color unless possible_enemy.nil?
   end
 
-  def can_move?(piece, target)
+  def can_move?(piece, target, player = @current_player)
     # binding.pry
     # move_board = temp_board_array
     target_piece = get_piece(target)
     # update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
 
     piece.possible_moves.any? { |direction| direction.include?(target) } && target_piece.nil? &&
-      !test_possible_check(piece, target, @current_player)
+      !test_possible_check(piece, target, player)
 
     # false
 
@@ -292,14 +292,11 @@ class Board
     # @available_moves.include?(target) && target_piece.nil?
   end
 
-  def can_attack?(piece, target)
-    # binding.pry
-    # target_piece = get_piece(target) ##
-    # piece.possible_attacks.include?(target) && enemy_piece?(piece, target_piece)
-    # @available_attacks.include?(target) ##
+  def can_attack?(piece, target, player = @current_player)
     piece.possible_attacks.any? do |direction|
       direction.any? do |attack|
-        attack == target && enemy_piece?(piece, get_piece(target))
+        attack == target && enemy_piece?(piece, get_piece(target)) &&
+          !test_possible_check(piece, attack, player)
       end
     end
   end
@@ -316,10 +313,10 @@ class Board
     update_piece_location(piece, target_location)
   end
 
-  def any_possible_moves?(piece)
+  def any_possible_moves?(piece, player = @current_player)
     piece.possible_moves.any? do |direction|
       direction.any? do |move|
-        can_move?(piece, move) || can_attack?(piece, move)
+        can_move?(piece, move, player) || can_attack?(piece, move, player)
       end
     end
   end
@@ -340,7 +337,6 @@ class Board
     old_piece_key = current_player_pieces.find { |_key, value| value == piece }[0]
     new_piece = case promotion.downcase
                 when 'queen'
-                  # binding.pry
                   Queen.new(@current_player, piece.location)
                 when 'rook'
                   Rook.new(@current_player, piece.location)

@@ -229,7 +229,8 @@ class Game
   end
 
   def end_game
-    puts @stalemate ? 'Stalemate! No winner!' : "Checkmate! Congrats #{@other_player} player, you win!"
+    puts "\n"
+    puts @stalemate ? 'Stalemate! No winner!'.green : "Checkmate! Congrats #{@other_player} player, you win!".green
   end
 end
 
