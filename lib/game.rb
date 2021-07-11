@@ -55,9 +55,12 @@ class Game
     until game_over?
       @chess_board.to_s(@chess_board.board_contents, @check_message) # eventually change .to_s to .print_board
       chosen_piece = @chess_board.get_piece(coordinates_input)
+      last_square = chosen_piece.location
       @chess_board.display_possible_moves(chosen_piece)
       chosen_move = move_input(chosen_piece)
       move_or_attack(chosen_piece, chosen_move)
+      @chess_board.update_last_move(chosen_piece, last_square)
+      # binding.pry
       @chess_board.promote(chosen_piece, promotion) if @chess_board.can_promote?(chosen_piece)
       @chess_board.to_s
       end_game_conditions
@@ -77,7 +80,9 @@ class Game
   end
 
   def check_move(piece, move)
-    @chess_board.any_possible_moves?(piece) && !@chess_board.test_possible_check(piece, move, @current_player)
+    @chess_board.any_possible_moves?(piece) && !@chess_board.test_possible_check(piece, move, @current_player) &&
+      (piece.possible_moves.any? { |direction| direction.include?(move) } ||
+      piece.possible_attacks.any? { |direction| direction.include?(move) })
   end
 
   def coordinates_input
@@ -93,8 +98,10 @@ class Game
   def valid_selection?(coordinates)
     return false unless valid_coordinates?(coordinates)
 
+    # binding.pry
     chess_piece = @chess_board.get_piece(map_coordinates(coordinates))
-    !chess_piece.nil? && @chess_board.player_piece?(chess_piece, @current_player) && @chess_board.any_possible_moves?(chess_piece)
+    !chess_piece.nil? && @chess_board.player_piece?(chess_piece, @current_player) &&
+      @chess_board.any_possible_moves?(chess_piece)
   end
 
   def move_input(piece)
