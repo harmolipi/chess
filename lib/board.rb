@@ -52,6 +52,25 @@ class Board
       }
     ]
 
+    en_passant_board = [
+      {
+        pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
+        pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
+        pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
+        rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 4]),
+        bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
+        king: King.new('white', [4, 0])
+      },
+      {
+        pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 3]),
+        pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
+        pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
+        rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
+        bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
+        king: King.new('black', [4, 7])
+      }
+    ]
+
     almost_check = [
       {
         pawn1: Pawn.new('white', [2, 6]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
@@ -98,8 +117,8 @@ class Board
       }
     ]
 
-    @white = checkmate_board1[0]
-    @black = checkmate_board1[1]
+    @white = en_passant_board[0]
+    @black = en_passant_board[1]
     @board_contents = Array.new(8) { Array.new(8) }
     @captured = []
     @last_move = nil
@@ -146,29 +165,39 @@ class Board
     possible_moves_board = temp_board_array
     piece_square = possible_moves_board[piece.location[0]][piece.location[1]]
     possible_moves_board[piece.location[0]][piece.location[1]] = piece_square.symbol.on_green
-    possible_moves_board = update_possible_moves(piece, possible_moves_board)
+    update_possible_moves(piece)
+    possible_moves_board = map_possible_moves(piece, possible_moves_board)
     to_s(possible_moves_board, system_message)
   end
 
-  def update_possible_moves(piece, board = self)
+  def update_possible_moves(piece)
     @available_moves = []
+    @available_attacks = []
     piece.possible_moves.each do |direction|
       direction.each do |possible_move|
         break unless can_move?(piece, possible_move)
 
         @available_moves << possible_move
-        board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
       end
     end
 
     piece.possible_attacks.each do |direction|
       direction.each do |possible_attack|
-        board_square = get_piece(possible_attack, board)
         break unless can_attack?(piece, possible_attack)
 
         @available_attacks << possible_attack
-        board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
       end
+    end
+  end
+
+  def map_possible_moves(piece, board = self)
+    @available_moves.each do |move|
+      board[move[0]][move[1]] = POSSIBLE_MOVE
+    end
+
+    @available_attacks.each do |attack|
+      board_square = get_piece(attack, @board_contents)
+      board[attack[0]][attack[1]] = board_square.symbol.on_red
     end
     board
   end
@@ -277,7 +306,6 @@ class Board
   end
 
   def can_move?(piece, target, player = @current_player)
-    # binding.pry
     # move_board = temp_board_array
     target_piece = get_piece(target)
     # update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
@@ -303,6 +331,7 @@ class Board
 
   def move(piece, target_location)
     update_piece_location(piece, target_location)
+    @last_move = piece
   end
 
   def attack(piece, target_location)
@@ -314,9 +343,11 @@ class Board
   end
 
   def any_possible_moves?(piece, player = @current_player)
+    update_possible_moves(piece)
     piece.possible_moves.any? do |direction|
       direction.any? do |move|
-        can_move?(piece, move, player) || can_attack?(piece, move, player)
+        (can_move?(piece, move, player) || can_attack?(piece, move, player)) &&
+          (@available_moves.include?(move) || @available_attacks.include?(move))
       end
     end
   end
