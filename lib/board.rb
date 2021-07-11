@@ -345,9 +345,9 @@ class Board
   def stalemate?(player = @other_player)
     # Checks to see if player is in stalemate
 
-    player_pieces = player == 'white' ? @chess_board.white : @chess_board.black
+    player_pieces = player == 'white' ? @white : @black
     player_pieces.none? do |piece|
-      @chess_board.any_possible_moves?(piece)
+      any_possible_moves?(player_pieces[piece[0]])
     end
   end
 
