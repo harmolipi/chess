@@ -52,17 +52,16 @@ class Game
   def two_player_game_loop
     # binding.pry
     until game_over?
-      @chess_board.to_s
+      @chess_board.to_s # eventually change .to_s to .print_board
       chosen_piece = @chess_board.get_piece(coordinates_input)
       @chess_board.display_possible_moves(chosen_piece)
       chosen_move = move_input(chosen_piece)
-      # binding.pry
-      @chess_board.move(chosen_piece, chosen_move)
+      move_or_attack(chosen_piece, chosen_move)
       @chess_board.promote(chosen_piece, promotion) if @chess_board.can_promote?(chosen_piece)
       # @chess_board.promote(chosen_piece) if @chess_board.can_promote?(chosen_piece)
 
       @chess_board.to_s
-      # if check?
+      # if @chess_board.check2?
       #   puts 'Check!'
       #   if checkmate?
       #     puts 'and checkmate!'
@@ -74,16 +73,23 @@ class Game
       #   temp = gets.chomp
       # end
 
-      @checkmate = true if checkmate?
+      @checkmate = true if @chess_board.checkmate?
       switch_players
     end
     end_game
   end
 
+  def move_or_attack(piece, target)
+    if @chess_board.can_move?(piece, target)
+      @chess_board.move2(piece, target)
+    elsif @chess_board.can_attack?(piece, target)
+      @chess_board.attack2(piece, target)
+    end
+  end
+
   def check_move(piece, move)
-    # binding.pry
-    player = @current_player == 'white' ? 'black' : 'white'
-    (@chess_board.can_move?(piece, move) || @chess_board.can_attack?(piece, move)) && !@chess_board.test_possible_check(piece, move, player)
+    # (@chess_board.can_move?(piece, move) || @chess_board.can_attack?(piece, move)) && !@chess_board.test_possible_check(piece, move, @current_player)
+    @chess_board.any_possible_moves?(piece) && !@chess_board.test_possible_check(piece, move, @current_player)
   end
 
   def coordinates_input
@@ -91,27 +97,32 @@ class Game
       print "\nEnter coordinates (e.g. 'a2') for the piece you want to move: "
       coordinates = gets.chomp
 
-      if valid_coordinates?(coordinates) && !@chess_board.get_piece(map_coordinates(coordinates)).nil? && 
-         @chess_board.player_piece?(@chess_board.get_piece(map_coordinates(coordinates)), @current_player)
-        return map_coordinates(coordinates)
-      end
+      return map_coordinates(coordinates) if valid_selection?(coordinates)
 
       # return map_coordinates(coordinates) if valid_coordinates?(coordinates)
-      system 'clear'
+      # system 'clear'
       # puts 'Invalid entry, please try again.'.red
       @chess_board.to_s(@chess_board.board_contents, 'Invalid entry, please try again.'.red)
     end
+  end
+
+  def valid_selection?(coordinates)
+    return false unless valid_coordinates?(coordinates)
+
+    chess_piece = @chess_board.get_piece(map_coordinates(coordinates))
+    !chess_piece.nil? && @chess_board.player_piece?(chess_piece, @current_player) && @chess_board.any_possible_moves?(chess_piece)
   end
 
   def move_input(piece)
     loop do
       print "\nEnter coordinates for the square you'd like to move to: "
       coordinates = gets.chomp
+
       if valid_coordinates?(coordinates) && check_move(piece, map_coordinates(coordinates))
         return map_coordinates(coordinates)
       end
 
-      puts 'Invalid entry, please try again.'.red
+      @chess_board.display_possible_moves(piece, 'Invalid entry, please try again.'.red)
     end
   end
 
@@ -130,7 +141,9 @@ class Game
 
   def switch_players
     @current_player = @current_player == 'white' ? 'black' : 'white'
+    @other_player = @current_player == 'white' ? 'black' : 'white'
     @chess_board.current_player = @current_player
+    @chess_board.other_player = @other_player
   end
 
   def can_promote?(piece)
@@ -175,34 +188,11 @@ class Game
         next if direction.empty?
         direction.each do |move|
           next if move.nil?
-          # binding.pry
-
-          # temp_board = copy_board
-          # temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
-          # temp_other_player_piece = temp_other_player_pieces[piece[0]]
-          # temp_board.move(temp_other_player_piece, move)
-
+  
           unless test_possible_check(other_player_piece, move)
             is_checkmate = false
             break
           end
-
-          # binding.pry
-          # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
-          # temp_current_player_pieces[piece[0]].location = move[0]
-          # other_king.location = move[0]
-          # check?(temp_board) ? false : true
-
-          # unless check?(temp_board)
-          #   is_checkmate = false
-          #   break
-          # end
-
-          # unless check?(temp_board)
-          #   is_checkmate = false
-          #   break
-          # end
-          # is_checkmate = true
         end
         break unless is_checkmate
       end
@@ -212,13 +202,6 @@ class Game
       other_player_piece.possible_attacks.each do |direction|
         direction.each do |attack|
           next if attack.nil?
-
-          # binding.pry
-
-          # temp_board = copy_board
-          # temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
-          # temp_other_player_piece = temp_other_player_pieces[piece[0]]
-          # temp_board.move(temp_other_player_piece, attack)
 
           unless test_possible_check(other_player_piece, attack)
             is_checkmate = false
@@ -254,16 +237,20 @@ class Game
     temp_other_player_pieces = player == 'white' ? temp_board.black : temp_board.white
     # temp_other_player_piece = temp_other_player_pieces[piece[0]]
     temp_other_player_piece = temp_board.get_piece(piece.location)
-    temp_board.move(temp_other_player_piece, move)
+    temp_board.move2(temp_other_player_piece, move)
     check?(temp_board, player)
-  end
-
-  def stalemate?
-    false
   end
 
   def game_over?
     @checkmate || stalemate?
+  end
+
+  def end_game_conditions
+    if @chess_board.check2?
+      @checkmate = true if @chess_board.checkmate?
+    elsif @chess_board.stalemate?
+      @stalemate = true
+    end
   end
 
   def game_won
@@ -275,7 +262,7 @@ class Game
   end
 
   def end_game
-    puts stalemate? ? 'Stalemate! No winner!' : "Congrats #{@current_player} player, you win!"
+    puts stalemate? ? 'Stalemate! No winner!' : "Checkmate! Congrats #{@other_player} player, you win!"
   end
 end
 

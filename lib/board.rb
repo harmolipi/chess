@@ -19,7 +19,7 @@ require 'msgpack'
 # Class handling the chess board, its moves, and its contents
 class Board
   attr_reader :board_contents, :white, :black
-  attr_writer :current_player
+  attr_writer :current_player, :other_player
 
   POSSIBLE_MOVE = " \u25CF ".red
   VALID_COORDINATES = /^([A-H]|[a-h])[1-8]$/.freeze
@@ -113,7 +113,7 @@ class Board
         rook1: Rook.new('white', [3, 7]), rook2: Rook.new('white', [5, 4]), king: King.new('white', [4, 0])
       },
       {
-        king: King.new('black', [7, 6])
+        king: King.new('black', [7, 6]), pawn: Pawn.new('black', [1, 6])
       }
     ]
 
@@ -161,19 +161,9 @@ class Board
     @available_moves = []
     @available_attacks = []
     @current_player = 'white'
+    @other_player = 'black'
     default_positions
   end
-
-  # def to_s(board_display = @board_contents)
-  #   board_display.each_with_index.reverse_each do |column, index|
-  #     print '   | '
-  #     column.each_index do |index2|
-  #       print board_display[index2][index].symbol || EMPTY_CELL
-  #       print ' | '
-  #     end
-  #     print "\n"
-  #   end
-  # end
 
   def to_s(board_display = @board_contents, system_message = '', player = @current_player)
     # binding.pry
@@ -206,185 +196,145 @@ class Board
     # " #{square} ".send(background)
   end
 
-  # def display_possible_moves(piece)
-  #   possible_moves_board = @board_contents
-  #   piece.possible_moves.each do |possible_move|
-  #     board_square = possible_moves_board[possible_move[0]][possible_move[1]]
-  #     if board_square.nil?
-  #       possible_moves_board[possible_move[0]][possible_move[1]] = EMPTY_CELL.red
-  #     end
-  #   end
-  #   to_s(possible_moves_board)
-  # end
-
-  def any_possible_moves?(coordinates)
-
-  end
-
   def get_piece(coordinates, board = @board_contents)
     board[coordinates[0]][coordinates[1]]
   end
 
-  def display_possible_moves(piece)
+  def display_possible_moves(piece, system_message = '')
     possible_moves_board = temp_board_array
-    @available_moves = []
+    # @available_moves = []
 
     piece_square = possible_moves_board[piece.location[0]][piece.location[1]]
     possible_moves_board[piece.location[0]][piece.location[1]] = piece_square.symbol.on_green
 
-    # piece.possible_moves.each do |possible_move|
-    #   # board_square = possible_moves_board[possible_move[0]][possible_move[1]]
-    #   board_square = get_piece(possible_move, possible_moves_board)
-    #   if board_square.nil?
+    # piece.possible_moves.each do |direction|
+    #   direction.each do |possible_move|
+    #     # binding.pry
+    #     board_square = get_piece(possible_move, possible_moves_board)
+    #     break unless board_square.nil?
+
+    #     @available_moves << possible_move
     #     possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
-    #   elsif enemy_piece?(piece, board_square)
-    #     possible_moves_board[possible_move[0]][possible_move[1]] = board_square.symbol.on_red
     #   end
     # end
 
-    # piece.possible_moves.each do |possible_move|
-    #   # binding.pry
-    #   # board_square = possible_moves_board[possible_move[0]][possible_move[1]]
-    #   board_square = get_piece(possible_move, possible_moves_board)
-    #   possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
+    possible_moves_board = update_possible_moves(piece, possible_moves_board)
+
+    # piece.possible_attacks.each do |direction|
+    #   direction.each do |possible_attack|
+    #     # binding.pry
+    #     board_square = get_piece(possible_attack, possible_moves_board)
+    #     break if board_square.nil?
+
+    #     if enemy_piece?(piece, board_square)
+    #       @available_attacks << possible_attack
+    #       possible_moves_board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
+    #       break
+    #     end
+    #   end
     # end
 
-    # piece.possible_moves.each do |possible_move|
-    #   # binding.pry
-    #   board_square = get_piece(possible_move, possible_moves_board)
-    #   break unless board_square.nil?
+    to_s(possible_moves_board, system_message)
+  end
 
-    #   possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE if board_square.nil?
-    # end
-
+  def update_possible_moves(piece, board = self)
+    # binding.pry
+    @available_moves = []
     piece.possible_moves.each do |direction|
       direction.each do |possible_move|
-        # binding.pry
-        board_square = get_piece(possible_move, possible_moves_board)
-        break unless board_square.nil?
+        # board_square = get_piece(possible_move, board)
+        # break unless board_square.nil? && can_move?(piece, possible_move)
+        break unless can_move?(piece, possible_move)
 
         @available_moves << possible_move
-        possible_moves_board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
+        board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
       end
     end
-
-    # possible_moves_board = update_possible_moves(piece, possible_moves_board)
 
     piece.possible_attacks.each do |direction|
       direction.each do |possible_attack|
         # binding.pry
-        board_square = get_piece(possible_attack, possible_moves_board)
-        break if board_square.nil?
+        board_square = get_piece(possible_attack, board)
+        # break if board_square.nil? 
+        break unless can_attack?(piece, possible_attack)
 
         if enemy_piece?(piece, board_square)
           @available_attacks << possible_attack
-          possible_moves_board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
+          board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
           break
         end
       end
     end
+    board
+  end
 
-    # piece.possible_attacks.each do |possible_attack|
-    #   board_square = get_piece(possible_attack, possible_moves_board)
+  def test_possible_check(piece, move, player = @current_player)
+    # Check to see if a piece making this move would put the player in check
 
-    #   if enemy_piece?(piece, board_square)
-    #     possible_moves_board[possible_attack[0]][possible_attack[1]] = board_square.symbol.on_red
-    #   end
-    # end
-
-    to_s(possible_moves_board)
+    # binding.pry
+    temp_board = copy_board
+    temp_other_player_piece = temp_board.get_piece(piece.location)
+    temp_board.move2(temp_other_player_piece, move)
+    check2?(temp_board, player)
   end
 
   def check?(chess_board = self, player = @current_player)
+    # binding.pry
     current_player_pieces = player == 'white' ? chess_board.white : chess_board.black
     other_player_pieces = player == 'white' ? chess_board.black : chess_board.white
     other_king = other_player_pieces[:king]
     current_player_pieces.any? do |piece|
-      current_player_pieces[piece[0]].possible_moves.any? { |direction| direction.include?(other_king.location) } ||
-        current_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(other_king.location) }
+      current_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(other_king.location) }
     end
   end
 
-  def checkmate?
+  def check2?(chess_board = self, player = @other_player)
+    # Checks whether the player's king is currently in check
+
+    player_pieces = player == 'white' ? chess_board.white : chess_board.black
+    other_player_pieces = player == 'white' ? chess_board.black : chess_board.white
+    other_player_pieces.any? do |piece|
+      other_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(player_pieces[:king].location) }
+    end
+  end
+
+  def checkmate?(player = @other_player)
+    # checks to see if given player is in checkmate
+
     # binding.pry
-    current_player_pieces = @current_player == 'white' ? @white : @black
-    other_player_pieces = @current_player == 'white' ? @black : @white
-    other_king = other_player_pieces[:king]
+    player_pieces = player == 'white' ? @white : @black
+    other_player_pieces = player == 'white' ? @black : @white
+    other_king = player_pieces[:king]
     is_checkmate = true
-    other_player_pieces.each do |piece|
+    player_pieces.each do |piece|
       # binding.pry
-      other_player_piece = other_player_pieces[piece[0]]
-      other_player_piece.possible_moves.each do |direction|
+      player_piece = player_pieces[piece[0]]
+      player_piece.possible_moves.each do |direction|
         # binding.pry
         next if direction.empty?
         direction.each do |move|
           next if move.nil?
           # binding.pry
 
-          # temp_board = copy_board
-          # temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
-          # temp_other_player_piece = temp_other_player_pieces[piece[0]]
-          # temp_board.move(temp_other_player_piece, move)
-
-          unless test_possible_check(other_player_piece, move)
+          unless test_possible_check(player_piece, move, player)
             is_checkmate = false
             break
           end
-
-          # binding.pry
-          # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
-          # temp_current_player_pieces[piece[0]].location = move[0]
-          # other_king.location = move[0]
-          # check?(temp_board) ? false : true
-
-          # unless check?(temp_board)
-          #   is_checkmate = false
-          #   break
-          # end
-
-          # unless check?(temp_board)
-          #   is_checkmate = false
-          #   break
-          # end
-          # is_checkmate = true
         end
         break unless is_checkmate
       end
       
       return is_checkmate unless is_checkmate
 
-      other_player_piece.possible_attacks.each do |direction|
+      player_piece.possible_attacks.each do |direction|
+        next if direction.empty?
         direction.each do |attack|
           next if attack.nil?
 
-          # binding.pry
-
-          # temp_board = copy_board
-          # temp_other_player_pieces = @current_player == 'white' ? temp_board.black : temp_board.white
-          # temp_other_player_piece = temp_other_player_pieces[piece[0]]
-          # temp_board.move(temp_other_player_piece, attack)
-
-          unless test_possible_check(other_player_piece, attack)
+          unless test_possible_check(player_piece, attack, player)
             is_checkmate = false
             break
           end
-
-          # binding.pry
-          # temp_current_player_pieces = @current_player == 'white' ? temp_board.white : temp_board.black
-          # temp_current_player_pieces[piece[0]].location = move[0]
-          # other_king.location = move[0]
-          # check?(temp_board) ? false : true
-
-          # unless check?(temp_board)
-          #   is_checkmate = false
-          #   break
-          # end
-
-          # unless check?(temp_board)
-          #   is_checkmate = false
-          #   break
-          # end
-          # is_checkmate = true
         end
         break unless is_checkmate
       end
@@ -392,35 +342,18 @@ class Board
     end
   end
 
-  def test_possible_check(piece, move, player = @current_player)
-    # binding.pry
-    temp_board = copy_board
-    temp_other_player_pieces = player == 'white' ? temp_board.black : temp_board.white
-    # temp_other_player_piece = temp_other_player_pieces[piece[0]]
-    temp_other_player_piece = temp_board.get_piece(piece.location)
-    temp_board.move(temp_other_player_piece, move)
-    check?(temp_board, player)
+  def stalemate?(player = @other_player)
+    # Checks to see if player is in stalemate
+
+    player_pieces = player == 'white' ? @chess_board.white : @chess_board.black
+    player_pieces.none? do |piece|
+      @chess_board.any_possible_moves?(piece)
+    end
   end
 
   def copy_board(chess_board = self)
     # binding.pry
     Marshal.load(Marshal.dump(chess_board))
-  end
-
-  def update_possible_moves(piece, board)
-    # binding.pry
-    @available_moves = []
-    piece.possible_moves.each do |direction|
-      direction.each do |possible_move|
-        # binding.pry
-        board_square = get_piece(possible_move, board)
-        break unless board_square.nil?
-
-        @available_moves << possible_move
-        board[possible_move[0]][possible_move[1]] = POSSIBLE_MOVE
-      end
-    end
-    board
   end
 
   def display_selection(selection)
@@ -457,11 +390,18 @@ class Board
 
   def can_move?(piece, target)
     # binding.pry
-    move_board = temp_board_array
+    # move_board = temp_board_array
     target_piece = get_piece(target)
-    update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
+    # update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
+
+    piece.possible_moves.any? { |direction| direction.include?(target) } && target_piece.nil? &&
+      !test_possible_check(piece, target, @current_player)
+
+    # false
+
     # piece.possible_moves.include?(target) && target_piece.nil?
-    @available_moves.include?(target) && target_piece.nil?
+
+    # @available_moves.include?(target) && target_piece.nil?
   end
 
   def can_attack?(piece, target)
@@ -471,7 +411,7 @@ class Board
     # @available_attacks.include?(target) ##
     piece.possible_attacks.any? do |direction|
       direction.any? do |attack|
-        attack == target
+        attack == target && enemy_piece?(piece, get_piece(target))
       end
     end
   end
@@ -494,6 +434,26 @@ class Board
       update_piece_location(piece, target_location)
     end
     @last_move = piece
+  end
+
+  def move2(piece, target_location)
+    update_piece_location(piece, target_location)
+  end
+
+  def attack2(piece, target_location)
+    target_piece = get_piece(target_location)
+    other_player_pieces = @other_player == 'black' ? @black : @white
+    @captured << target_piece
+    other_player_pieces.reject! { |_taken_piece_name, taken_piece| taken_piece == get_piece(target_location) }
+    update_piece_location(piece, target_location)
+  end
+
+  def any_possible_moves?(piece)
+    piece.possible_moves.any? do |direction|
+      direction.any? do |move|
+        can_move?(piece, move) || can_attack?(piece, move)
+      end
+    end
   end
 
   def update_piece_location(piece, target_location, chess_board = @board_contents)
