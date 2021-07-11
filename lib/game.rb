@@ -21,6 +21,7 @@ class Game
     @chess_board = Board.new
     @game_over = false
     @checkmate = false
+    @check_message = ''
   end
 
   def intro_text
@@ -52,7 +53,7 @@ class Game
   def two_player_game_loop
     # binding.pry
     until game_over?
-      @chess_board.to_s # eventually change .to_s to .print_board
+      @chess_board.to_s(@chess_board.board_contents, @check_message) # eventually change .to_s to .print_board
       chosen_piece = @chess_board.get_piece(coordinates_input)
       @chess_board.display_possible_moves(chosen_piece)
       chosen_move = move_input(chosen_piece)
@@ -73,7 +74,8 @@ class Game
       #   temp = gets.chomp
       # end
 
-      @checkmate = true if @chess_board.checkmate?
+      # @checkmate = true if @chess_board.checkmate?
+      end_game_conditions
       switch_players
     end
     end_game
@@ -232,24 +234,28 @@ class Game
   end
 
   def test_possible_check(piece, move, player = @current_player)
-    # binding.pry
     temp_board = copy_board
-    temp_other_player_pieces = player == 'white' ? temp_board.black : temp_board.white
-    # temp_other_player_piece = temp_other_player_pieces[piece[0]]
     temp_other_player_piece = temp_board.get_piece(piece.location)
     temp_board.move2(temp_other_player_piece, move)
     check?(temp_board, player)
   end
 
   def game_over?
-    @checkmate || stalemate?
+    @checkmate || @stalemate
   end
 
   def end_game_conditions
+    # binding.pry
     if @chess_board.check2?
-      @checkmate = true if @chess_board.checkmate?
+      @check_message = 'Check!'.blue
+      if @chess_board.checkmate?
+        @checkmate = true
+        @check_message = 'Checkmate!'.blue
+      end
     elsif @chess_board.stalemate?
       @stalemate = true
+    else
+      @check_message = ''
     end
   end
 
@@ -262,7 +268,7 @@ class Game
   end
 
   def end_game
-    puts stalemate? ? 'Stalemate! No winner!' : "Checkmate! Congrats #{@other_player} player, you win!"
+    puts @stalemate ? 'Stalemate! No winner!' : "Checkmate! Congrats #{@other_player} player, you win!"
   end
 end
 
