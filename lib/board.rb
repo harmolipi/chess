@@ -18,7 +18,7 @@ require 'msgpack'
 
 # Class handling the chess board, its moves, and its contents
 class Board
-  attr_reader :board_contents, :white, :black, :last_move, :last_double_step
+  attr_reader :board_contents, :white, :black, :last_move, :last_double_step, :available_attacks
   attr_writer :current_player, :other_player
 
   POSSIBLE_MOVE = " \u25CF ".red
@@ -126,8 +126,27 @@ class Board
       }
     ]
 
-    @white = en_passant_board[0]
-    @black = en_passant_board[1]
+    castling_board = [
+      {
+        pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
+        pawn4: Pawn.new('white', [3, 2]), pawn5: Pawn.new('white', [4, 2]), pawn6: Pawn.new('white', [5, 1]),
+        pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
+        rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [2, 2]), knight2: Knight.new('white', [7, 2]),
+        bishop1: Bishop.new('white', [3, 1]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [4, 1]),
+        king: King.new('white', [4, 0])
+      },
+      {
+        pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
+        pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
+        pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
+        rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
+        bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
+        king: King.new('black', [4, 7])
+      }
+    ]
+
+    @white = normal_board[0]
+    @black = normal_board[1]
     @board_contents = Array.new(8) { Array.new(8) }
     @captured = []
     @last_move = nil
@@ -191,17 +210,12 @@ class Board
       end
     end
 
-    # possible_attacks.each do |direction|
-      # direction.each do |possible_attack|
-      #   # binding.pry if piece.color == 'white'
-      #   break unless can_attack?(piece, possible_attack) ||
-      #                piece.possible_attacks(can_en_passant?(piece))[1] == direction
-
     possible_attacks = piece.is_a?(Pawn) ? pawn_attacks(piece) : piece.possible_attacks
 
     possible_attacks.each do |direction|
       direction.each do |possible_attack|
         # binding.pry if piece.color == 'white'
+        # binding.pry
         break unless can_attack?(piece, possible_attack)
 
         @available_attacks << possible_attack
@@ -211,7 +225,8 @@ class Board
 
   def map_possible_moves(piece, board = self)
     @available_moves.each do |move|
-      board[move[0]][move[1]] = POSSIBLE_MOVE
+      # binding.pry if piece.is_a?(King)
+      board[move[0]][move[1]] = POSSIBLE_MOVE unless test_possible_check(piece, move)
     end
 
     @available_attacks.each do |attack|
@@ -232,6 +247,7 @@ class Board
     temp_board = copy_board
     temp_other_player_piece = temp_board.get_piece(piece.location)
     temp_board.move(temp_other_player_piece, move)
+    # binding.pry
     check?(temp_board, player)
   end
 
@@ -241,8 +257,12 @@ class Board
     player_pieces = player == 'white' ? chess_board.white : chess_board.black
     other_player_pieces = player == 'white' ? chess_board.black : chess_board.white
     other_player_pieces.any? do |piece|
-      other_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(player_pieces[:king].location) }
+      # binding.pry
+      chess_board.update_possible_moves(other_player_pieces[piece[0]])
+      chess_board.available_attacks.include?(player_pieces[:king].location)
+    # other_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(player_pieces[:king].location) }
     end
+
   end
 
   def checkmate?(player = @other_player)
@@ -334,8 +354,8 @@ class Board
     target_piece = get_piece(target)
     # update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
 
-    piece.possible_moves.any? { |direction| direction.include?(target) } && target_piece.nil? &&
-      !test_possible_check(piece, target, player)
+    piece.possible_moves.any? { |direction| direction.include?(target) } && target_piece.nil? # &&
+      # !test_possible_check(piece, target, player)
 
     # false
 
@@ -345,36 +365,28 @@ class Board
   end
 
   def can_attack?(piece, target, player = @current_player)
-    # binding.pry
-    # @available_attacks.include?(target)
-    # piece.possible_attacks(can_en_passant?(piece)).any? do |direction|
-    #   direction.any? do |possible_attack|
-    #     possible_attack == target && (enemy_piece?(piece, get_piece(target)) || en_passant?(piece, possible_attack)) &&
-    #       !test_possible_check(piece, possible_attack, player)
-    #   end
-    # end
+    # Just checks whether piece can attack target, not whether it will result in check
 
     possible_attacks = piece.is_a?(Pawn) ? pawn_attacks(piece) : piece.possible_attacks
+    # binding.pry
 
     possible_attacks.any? do |direction|
       direction.any? do |possible_attack|
+        # binding.pry
         # binding.pry if piece.is_a?(Pawn) && piece.color == 'black'
-        possible_attack == target && (enemy_piece?(piece, get_piece(target)) || en_passant?(piece, possible_attack)) &&
-          !test_possible_check(piece, possible_attack, player)
+        possible_attack == target && (enemy_piece?(piece, get_piece(target)) || en_passant?(piece, possible_attack)) # &&
+          # !test_possible_check(piece, possible_attack, player)
       end
     end
   end
 
   def en_passant?(piece, target)
-    # binding.pry
     piece.is_a?(Pawn) && target == pawn_attacks(piece)[1][0]
   end
 
   def move(piece, target_location)
-    # set_last_double_step(piece, target_location)
-    # update_last_move(piece, target_location)
     update_piece_location(piece, target_location)
-    # @last_move = piece
+    piece.update_has_moved if piece.is_a?(King) || piece.is_a?(Rook)
   end
 
   def update_last_move(piece, target)
@@ -388,13 +400,6 @@ class Board
   end
 
   def attack(piece, target_location)
-    # update_last_move(piece, target_location)
-    # if en_passant?(piece, target_location)
-    #   binding.pry
-    #   target_piece = get_piece([target_location[0], target_location[1] + 1 * piece.movement_direction])
-    # else
-    #   target_piece = get_piece(target_location)
-    # end
     target_piece = get_piece(target_location)
     other_player_pieces = @other_player == 'black' ? @black : @white
     @captured << target_piece
@@ -408,12 +413,12 @@ class Board
     other_player_pieces.reject! { |_taken_piece_name, taken_piece| taken_piece == target_piece }
   end
 
-  def any_possible_moves?(piece, player = @current_player)
+  def any_possible_moves?(piece)
     update_possible_moves(piece)
+
     piece.possible_moves.any? do |direction|
       direction.any? do |move|
-        (can_move?(piece, move, player) || can_attack?(piece, move, player)) &&
-          (@available_moves.include?(move) || @available_attacks.include?(move))
+        !test_possible_check(piece, move) && (@available_moves.include?(move) || @available_attacks.include?(move))
       end
     end
   end
@@ -438,16 +443,28 @@ class Board
     nil
   end
 
-  # def en_passant?(piece, target)
-  #   binding.pry if !piece.possible_attacks(can_en_passant?(piece))[1][0].nil?
-  #   # piece.is_a?(Pawn) && get_piece(target).nil?
-  #   piece.is_a?(Pawn) && !piece.possible_attacks(can_en_passant?(piece))[1][0].nil?
-  # end
+  def castle_move(king)
+    return nil if king.has_moved
+
+    rooks = king.color == 'white' ? [@white[:rook1], @white[:rook2]] : [@black[:rook1], @black[:rook2]]
+
+    unless rooks[0].has_moved
+      if get_piece([1, 0]).nil? && get_piece([2, 0]).nil? && get_piece([3, 0]).nil?
+        move(king, [2, 0])
+        move(rooks[0], [3, 0])
+      end
+    end
+  end
 
   def pawn_attacks(piece)
     attacks = piece.possible_attacks
     attacks[1] << en_passant_attack(piece) unless en_passant_attack(piece).nil?
     attacks
+  end
+
+  def king_moves(piece)
+    moves = piece.possible_moves
+    moves[9] << castle_move
   end
 
   def can_promote?(piece)

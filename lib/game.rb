@@ -60,7 +60,6 @@ class Game
       chosen_move = move_input(chosen_piece)
       move_or_attack(chosen_piece, chosen_move)
       @chess_board.update_last_move(chosen_piece, last_square)
-      # binding.pry
       @chess_board.promote(chosen_piece, promotion) if @chess_board.can_promote?(chosen_piece)
       @chess_board.to_s
       end_game_conditions
@@ -89,9 +88,11 @@ class Game
     loop do
       print "\nEnter coordinates (e.g. 'a2') for the piece you want to move: "
       coordinates = gets.chomp
+      binding.pry if coordinates == 'stop'
       return map_coordinates(coordinates) if valid_selection?(coordinates)
 
-      @chess_board.to_s(@chess_board.board_contents, 'Invalid entry, please try again.'.red)
+      @chess_board.to_s(@chess_board.board_contents,
+                        'Invalid entry or piece has no possible moves. Please try again.'.red)
     end
   end
 
