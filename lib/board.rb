@@ -187,7 +187,12 @@ class Board
   end
 
   def get_piece(coordinates, board = @board_contents)
+    # begin
+    binding.pry if coordinates[0].is_a?(Array)
     board[coordinates[0]][coordinates[1]]
+    # rescue
+    #   binding.pry
+    # end
   end
 
   def display_possible_moves(piece, system_message = '')
@@ -195,6 +200,7 @@ class Board
     piece_square = possible_moves_board[piece.location[0]][piece.location[1]]
     possible_moves_board[piece.location[0]][piece.location[1]] = piece_square.symbol.on_green
     update_possible_moves(piece)
+    binding.pry if piece.is_a?(King)
     possible_moves_board = map_possible_moves(piece, possible_moves_board)
     to_s(possible_moves_board, system_message)
   end
@@ -202,10 +208,19 @@ class Board
   def update_possible_moves(piece)
     @available_moves = []
     @available_attacks = []
-    piece.possible_moves.each do |direction|
-      direction.each do |possible_move|
+
+    possible_moves = piece.is_a?(King) ? king_moves(piece) : piece.possible_moves
+    # possible_moves = piece.possible_moves
+    # binding.pry if piece.is_a?(King) && piece.color == 'white'
+
+    possible_moves.each do |direction|
+      direction&.each do |possible_move|
+        # binding.pry if possible_move == [6, 0] && piece.is_a?(King)
+
+        break if possible_move.nil?
         break unless can_move?(piece, possible_move)
 
+        # binding.pry if piece.is_a?(King) && piece.color == 'white'
         @available_moves << possible_move
       end
     end
@@ -308,7 +323,7 @@ class Board
 
     player_pieces = player == 'white' ? @white : @black
     player_pieces.none? do |piece|
-      any_possible_moves?(player_pieces[piece[0]], player)
+      any_possible_moves?(player_pieces[piece[0]])
     end
   end
 
@@ -351,7 +366,17 @@ class Board
 
   def can_move?(piece, target, player = @current_player)
     # move_board = temp_board_array
+
+    return true if piece.is_a?(King) && castle_move?(piece, target)
+
+    # begin
+    # binding.pry if target.empty?
+    # return false if target.empty?
     target_piece = get_piece(target)
+    # rescue => exception
+    #   binding.pry
+    # end
+
     # update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
 
     piece.possible_moves.any? { |direction| direction.include?(target) } && target_piece.nil? # &&
@@ -385,6 +410,10 @@ class Board
   end
 
   def move(piece, target_location)
+    # if castle_move?(piece, target_location)
+
+    # end
+
     update_piece_location(piece, target_location)
     piece.update_has_moved if piece.is_a?(King) || piece.is_a?(Rook)
   end
@@ -443,28 +472,64 @@ class Board
     nil
   end
 
+  def castle_move?(king, target)
+    return false if king.has_moved
+
+    if king.location[1] == 0
+      return true if target == [2, 0] || target == [6, 0]
+    elsif king.location[1] == 7
+      return true if target == [2, 7] || target == [6, 7]
+    end
+
+    false
+  end
+
   def castle_move(king)
     return nil if king.has_moved
 
-    rooks = king.color == 'white' ? [@white[:rook1], @white[:rook2]] : [@black[:rook1], @black[:rook2]]
+    # rooks = king.color == 'white' ? [@white[:rook1], @white[:rook2]] : [@black[:rook1], @black[:rook2]]
 
-    unless rooks[0].has_moved
+    # castle_moves = Array.new(2) { [] }
+    # rooks << castle_moves[1]
+
+    castle_moves = []
+
+    if king.color == 'white'
       if get_piece([1, 0]).nil? && get_piece([2, 0]).nil? && get_piece([3, 0]).nil?
-        move(king, [2, 0])
-        move(rooks[0], [3, 0])
+        # castle_moves[0] << rooks[0]
+        castle_moves << [2, 0]
+      end
+
+      if get_piece([5, 0]).nil? && get_piece([6, 0]).nil?
+        # castle_moves[0] << rooks[1]
+        castle_moves << [6, 0]
+      end
+    else
+      if get_piece([1, 7]).nil? && get_piece([2, 7]).nil? && get_piece([3, 7]).nil?
+        # castle_moves[0] << rooks[0]
+        castle_moves << [2, 7]
+      end
+
+      if get_piece([5, 7]).nil? && get_piece([6, 7]).nil?
+        # castle_moves[0] << rooks[1]
+        castle_moves << [6, 7]
       end
     end
+    castle_moves
+  end
+
+  def king_moves(piece)
+    moves = piece.possible_moves
+    castle_moves = castle_move(piece)
+    castle_moves&.each { |move| moves[8] << move }
+    # moves[8] << castle_moves if castle_moves
+    moves
   end
 
   def pawn_attacks(piece)
     attacks = piece.possible_attacks
     attacks[1] << en_passant_attack(piece) unless en_passant_attack(piece).nil?
     attacks
-  end
-
-  def king_moves(piece)
-    moves = piece.possible_moves
-    moves[9] << castle_move
   end
 
   def can_promote?(piece)
