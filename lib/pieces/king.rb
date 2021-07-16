@@ -4,14 +4,18 @@ require_relative './piece'
 
 # Class for the king chess piece
 class King < Piece
-  def initialize(color = 'WHITE', location = [0, 0])
+  attr_reader :has_moved
+
+  def initialize(color = 'WHITE', location = [0, 0], has_moved = false)
     white_king = " \u2654 "
     black_king = " \u265A "
     super(white_king, black_king, color, location)
+    @original_location = location
+    @has_moved = has_moved
   end
 
   def possible_moves
-    possible_moves = Array.new(8) { [] }
+    possible_moves = Array.new(9) { [] }
     location_col = @location[0]
     location_row = @location[1]
 
@@ -29,5 +33,9 @@ class King < Piece
     end
 
     possible_moves
+  end
+
+  def update_has_moved
+    @has_moved = true if @location != @original_location
   end
 end

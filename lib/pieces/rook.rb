@@ -4,10 +4,14 @@ require_relative './piece'
 
 # Class for the rook chess piece
 class Rook < Piece
-  def initialize(color = 'WHITE', location = [0, 0])
+  attr_reader :has_moved
+
+  def initialize(color = 'WHITE', location = [0, 0], has_moved = false)
     white_rook = " \u2656 "
     black_rook = " \u265C "
     super(white_rook, black_rook, color, location)
+    @original_location = location
+    @has_moved = has_moved
   end
 
   def possible_moves
@@ -35,5 +39,9 @@ class Rook < Piece
     end
 
     possible_moves
+  end
+
+  def update_has_moved
+    @has_moved = true if @location != @original_location
   end
 end
