@@ -18,7 +18,7 @@ require 'msgpack'
 
 # Class handling the chess board, its moves, and its contents
 class Board
-  attr_reader :board_contents, :white, :black, :last_move, :last_double_step, :available_attacks
+  attr_reader :board_contents, :white, :black, :last_move, :last_double_step, :available_moves, :available_attacks
   attr_writer :current_player, :other_player
 
   POSSIBLE_MOVE = " \u25CF ".red
@@ -101,10 +101,11 @@ class Board
 
     checkmate_board1 = [
       {
-        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 4]), king: King.new('white', [0, 0])
+        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 4]), king: King.new('white', [4, 0], true)
+        # rook1: Rook.new('white', [0, 0]), rook2: Rook.new('white', [7, 0])
       },
       {
-        king: King.new('black', [4, 7])
+        king: King.new('black', [4, 7], true)
       }
     ]
 
@@ -145,8 +146,8 @@ class Board
       }
     ]
 
-    @white = normal_board[0]
-    @black = normal_board[1]
+    @white = checkmate_board1[0]
+    @black = checkmate_board1[1]
     @board_contents = Array.new(8) { Array.new(8) }
     @captured = []
     @last_move = nil
@@ -188,7 +189,7 @@ class Board
 
   def get_piece(coordinates, board = @board_contents)
     # begin
-    binding.pry if coordinates[0].is_a?(Array)
+    # binding.pry if coordinates[0].is_a?(Array)
     board[coordinates[0]][coordinates[1]]
     # rescue
     #   binding.pry
@@ -200,7 +201,7 @@ class Board
     piece_square = possible_moves_board[piece.location[0]][piece.location[1]]
     possible_moves_board[piece.location[0]][piece.location[1]] = piece_square.symbol.on_green
     update_possible_moves(piece)
-    binding.pry if piece.is_a?(King)
+    # binding.pry if piece.is_a?(King)
     possible_moves_board = map_possible_moves(piece, possible_moves_board)
     to_s(possible_moves_board, system_message)
   end
@@ -217,8 +218,7 @@ class Board
       direction&.each do |possible_move|
         # binding.pry if possible_move == [6, 0] && piece.is_a?(King)
 
-        break if possible_move.nil?
-        break unless can_move?(piece, possible_move)
+        break if possible_move.nil? || !can_move?(piece, possible_move)
 
         # binding.pry if piece.is_a?(King) && piece.color == 'white'
         @available_moves << possible_move
@@ -229,22 +229,28 @@ class Board
 
     possible_attacks.each do |direction|
       direction.each do |possible_attack|
+        # binding.pry if piece.is_a?(Queen) && piece.color == 'white'
         # binding.pry if piece.color == 'white'
         # binding.pry
-        break unless can_attack?(piece, possible_attack)
+        break unless can_attack?(piece, possible_attack) && !test_possible_check(piece, possible_attack)
 
+        # for some reason queen's available attacks aren't being added when checking for check - but moves are
         @available_attacks << possible_attack
       end
     end
   end
 
   def map_possible_moves(piece, board = self)
+    # binding.pry if piece.is_a?(Queen)
     @available_moves.each do |move|
       # binding.pry if piece.is_a?(King)
-      board[move[0]][move[1]] = POSSIBLE_MOVE unless test_possible_check(piece, move)
+      board[move[0]][move[1]] = POSSIBLE_MOVE unless test_possible_check(piece, move, @current_player)
     end
 
     @available_attacks.each do |attack|
+      # working on this now - not sure if attacks currently test for check (just added next line)
+      next if test_possible_check(piece, attack)
+
       board_square = get_piece(attack, @board_contents)
       if board_square.nil?
         board[attack[0]][attack[1]] = ' P '.on_red
@@ -260,24 +266,46 @@ class Board
     # Check to see if a piece making this move would put the player in check
 
     temp_board = copy_board
-    temp_other_player_piece = temp_board.get_piece(piece.location)
-    temp_board.move(temp_other_player_piece, move)
+    temp_piece = temp_board.get_piece(piece.location)
+
+    # This one was causing it to crash - might not need it:
+    # temp_board.update_possible_moves(temp_piece)
+
+
+    # binding.pry if temp_other_player_piece.is_a?(Queen)
+    target_square = temp_board.get_piece(move)
+
+    if !target_square.nil? || en_passant?(temp_piece, move)
+      temp_board.attack(temp_piece, move)
+    else
+      # binding.pry if temp_piece.is_a?(King) && temp_piece.color == 'black'
+      temp_board.move(temp_piece, move)
+    end
+
     # binding.pry
     check?(temp_board, player)
   end
 
-  def check?(chess_board = self, player = @other_player)
+  def check?(chess_board = self, player = @current_player)
     # Checks whether the player's king is currently in check
 
     player_pieces = player == 'white' ? chess_board.white : chess_board.black
     other_player_pieces = player == 'white' ? chess_board.black : chess_board.white
     other_player_pieces.any? do |piece|
       # binding.pry
-      chess_board.update_possible_moves(other_player_pieces[piece[0]])
-      chess_board.available_attacks.include?(player_pieces[:king].location)
-    # other_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(player_pieces[:king].location) }
-    end
+      # chess_board.update_possible_moves(other_player_pieces[piece[0]])
+      # chess_board.available_attacks.include?(player_pieces[:king].location)
+      other_player_pieces[piece[0]].possible_attacks.any? do |direction|
+        direction.any? do |possible_attack|
+          # next if get_piece(possible_attack).nil?
+          # binding.pry if other_player_pieces[piece[0]].is_a?(Queen)
 
+          possible_attack == player_pieces[:king].location
+        end
+      end
+
+      # other_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(player_pieces[:king].location) }
+    end
   end
 
   def checkmate?(player = @other_player)
@@ -359,6 +387,7 @@ class Board
 
   def enemy_piece?(piece, possible_enemy)
     # binding.pry
+    # TODO perhaps queen and king aren't being marked as enemies for some reason
     return false if possible_enemy == POSSIBLE_MOVE
 
     piece.color != possible_enemy.color unless possible_enemy.nil?
@@ -366,27 +395,16 @@ class Board
 
   def can_move?(piece, target, player = @current_player)
     # move_board = temp_board_array
+    # binding.pry if target == [3, 7]
+    # other_player = player == @current_player ? @other_player : @current_player
 
-    return true if piece.is_a?(King) && castle_move?(piece, target)
+    return true if castle_move?(piece, target) && !test_possible_check(piece, target, player)
 
-    # begin
-    # binding.pry if target.empty?
-    # return false if target.empty?
     target_piece = get_piece(target)
-    # rescue => exception
-    #   binding.pry
-    # end
 
     # update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
 
-    piece.possible_moves.any? { |direction| direction.include?(target) } && target_piece.nil? # &&
-      # !test_possible_check(piece, target, player)
-
-    # false
-
-    # piece.possible_moves.include?(target) && target_piece.nil?
-
-    # @available_moves.include?(target) && target_piece.nil?
+    piece.possible_moves.any? { |direction| direction.include?(target) } && target_piece.nil?
   end
 
   def can_attack?(piece, target, player = @current_player)
@@ -410,9 +428,18 @@ class Board
   end
 
   def move(piece, target_location)
-    # if castle_move?(piece, target_location)
-
-    # end
+    if castle_move?(piece, target_location)
+      case target_location
+      when [2, 0]
+        move(get_piece([0, 0]), [3, 0])
+      when [6, 0]
+        move(get_piece([7, 0]), [5, 0])
+      when [2, 7]
+        move(get_piece([0, 7]), [3, 7])
+      when [6, 7]
+        move(get_piece([7, 7]), [5, 7])
+      end
+    end
 
     update_piece_location(piece, target_location)
     piece.update_has_moved if piece.is_a?(King) || piece.is_a?(Rook)
@@ -443,16 +470,19 @@ class Board
   end
 
   def any_possible_moves?(piece)
+    # binding.pry
     update_possible_moves(piece)
 
     piece.possible_moves.any? do |direction|
       direction.any? do |move|
-        !test_possible_check(piece, move) && (@available_moves.include?(move) || @available_attacks.include?(move))
+        # binding.pry
+        !test_possible_check(piece, move, @current_player) && (@available_moves.include?(move) || @available_attacks.include?(move))
       end
     end
   end
 
   def update_piece_location(piece, target_location, chess_board = @board_contents)
+    # binding.pry if piece.nil?
     chess_board[piece.location[0]][piece.location[1]] = nil
     piece.location = target_location
     chess_board[target_location[0]][target_location[1]] = piece
@@ -473,7 +503,7 @@ class Board
   end
 
   def castle_move?(king, target)
-    return false if king.has_moved
+    return false if !king.is_a?(King) || king.has_moved
 
     if king.location[1] == 0
       return true if target == [2, 0] || target == [6, 0]
