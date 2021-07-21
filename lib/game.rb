@@ -79,9 +79,12 @@ class Game
   end
 
   def check_move(piece, move)
+    # @chess_board.any_possible_moves?(piece) && !@chess_board.test_possible_check(piece, move, @current_player) &&
+    #   (piece.possible_moves.any? { |direction| direction.include?(move) } ||
+    #   piece.possible_attacks.any? { |direction| direction.include?(move) })
+    @chess_board.update_possible_moves(piece)
     @chess_board.any_possible_moves?(piece) && !@chess_board.test_possible_check(piece, move, @current_player) &&
-      (piece.possible_moves.any? { |direction| direction.include?(move) } ||
-      piece.possible_attacks.any? { |direction| direction.include?(move) })
+      (@chess_board.available_moves.include?(move) || @chess_board.available_attacks.include?(move))
   end
 
   def coordinates_input
@@ -215,7 +218,7 @@ class Game
   end
 
   def end_game_conditions
-    if @chess_board.check?
+      if @chess_board.check?(@chess_board, @other_player)
       @check_message = 'Check!'.blue
       if @chess_board.checkmate?
         @checkmate = true
