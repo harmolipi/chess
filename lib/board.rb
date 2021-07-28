@@ -146,8 +146,8 @@ class Board
       }
     ]
 
-    @white = checkmate_board1[0]
-    @black = checkmate_board1[1]
+    @white = normal_board[0]
+    @black = normal_board[1]
     @board_contents = Array.new(8) { Array.new(8) }
     @captured = []
     @last_move = nil
@@ -289,18 +289,20 @@ class Board
   def check?(chess_board = self, player = @current_player)
     # Checks whether the player's king is currently in check
 
+    # TODO: Something is wrong with promoting Pawns to Queens - need to fix this
+
     player_pieces = player == 'white' ? chess_board.white : chess_board.black
     other_player_pieces = player == 'white' ? chess_board.black : chess_board.white
     other_player_pieces.any? do |piece|
       # binding.pry
       # chess_board.update_possible_moves(other_player_pieces[piece[0]])
       # chess_board.available_attacks.include?(player_pieces[:king].location)
-      other_player_pieces[piece[0]].possible_attacks.any? do |direction|
+      other_player_pieces[piece[0]]&.possible_attacks.any? do |direction|
         direction.any? do |possible_attack|
           # next if get_piece(possible_attack).nil?
           # binding.pry if other_player_pieces[piece[0]].is_a?(Queen)
 
-          possible_attack == player_pieces[:king].location
+          possible_attack == player_pieces[:king]&.location
         end
       end
 
@@ -473,12 +475,33 @@ class Board
     # binding.pry
     update_possible_moves(piece)
 
-    piece.possible_moves.any? do |direction|
-      direction.any? do |move|
-        # binding.pry
-        !test_possible_check(piece, move, @current_player) && (@available_moves.include?(move) || @available_attacks.include?(move))
-      end
+    # TODO:
+    # Original code: worked except for not allowing attack in case of check
+  
+    # binding.pry
+    # piece.possible_moves.any? do |direction|
+    #   direction.any? do |move|
+    #     # binding.pry if piece.is_a?(Pawn)
+    #     !test_possible_check(piece, move, @current_player) && (@available_moves.include?(move) || @available_attacks.include?(move))
+    #   end
+    # end
+
+    # New code:
+
+    # can_move = false
+    # binding.pry
+
+    can_move = @available_moves.any? do |move|
+      !test_possible_check(piece, move, @current_player)
     end
+
+    return can_move if can_move
+
+    can_move = @available_attacks.any? do |attack|
+      !test_possible_check(piece, attack, @current_player)
+    end
+
+    can_move
   end
 
   def update_piece_location(piece, target_location, chess_board = @board_contents)
@@ -570,18 +593,22 @@ class Board
   def promote(piece, promotion)
     current_player_pieces = @current_player == 'white' ? @white : @black
     old_piece_key = current_player_pieces.find { |_key, value| value == piece }[0]
-    new_piece = case promotion.downcase
-                when 'queen'
-                  Queen.new(@current_player, piece.location)
-                when 'rook'
-                  Rook.new(@current_player, piece.location)
-                when 'knight'
-                  Knight.new(@current_player, piece.location)
-                when 'bishop'
-                  Bishop.new(@current_player, piece.location)
-                when 'pawn'
-                  piece
-                end
+    invalid_move = false
+    until invalid_move
+      new_piece = case promotion.downcase
+                  when 'queen'
+                    Queen.new(@current_player, piece.location)
+                  when 'rook'
+                    Rook.new(@current_player, piece.location)
+                  when 'knight'
+                    Knight.new(@current_player, piece.location)
+                  when 'bishop'
+                    Bishop.new(@current_player, piece.location)
+                  when 'pawn'
+                    piece
+                  end
+      invalid_move = test_possible_check(new_piece, new_piece.location)
+    end
     @current_player == 'white' ? @white[old_piece_key] = new_piece : @black[old_piece_key] = new_piece
     # need to correctly add promoted piece to player's pieces
     # binding.pry
