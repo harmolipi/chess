@@ -15,9 +15,12 @@ require_relative './pieces/king'
 require_relative './colors'
 require 'pry'
 require 'msgpack'
+require_relative './BasicSerializable'
 
 # Class handling the chess board, its moves, and its contents
 class Board
+  include BasicSerializable
+
   attr_reader :board_contents, :white, :black, :last_move, :last_double_step, :available_moves, :available_attacks
   attr_writer :current_player, :other_player
 

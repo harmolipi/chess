@@ -89,9 +89,10 @@ class Game
 
   def coordinates_input
     loop do
-      print "\nEnter coordinates (e.g. 'a2') for the piece you want to move: "
+      print "\nEnter coordinates (e.g. 'a2') for the piece you want to move or type 'save': "
       coordinates = gets.chomp
       binding.pry if coordinates == 'stop'
+      save_game if coordinates.upcase == 'SAVE'
       return map_coordinates(coordinates) if valid_selection?(coordinates)
 
       @chess_board.to_s(@chess_board.board_contents,
@@ -164,6 +165,19 @@ class Game
 
   def copy_board
     Marshal.load(Marshal.dump(@chess_board))
+  end
+
+  def save_game
+    save = @chess_board.serialize
+    print 'Please enter a name for your save: '
+    save_name = gets.chomp
+    Dir.mkdir('./saves') unless Dir.exist?('./saves')
+    File.open("./saves/#{save_name}", 'w') { |f| f.print save }
+    exit
+  end
+
+  def load_game
+    
   end
 
   def checkmate?
