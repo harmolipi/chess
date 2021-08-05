@@ -33,9 +33,50 @@ class Board
   DARK_GRAY = 100
   LIGHT_RED = 101
   LIGHT_CYAN = 106
+  DEFAULT_BOARD = [
+    {
+      pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
+      pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
+      pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
+      rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
+      bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
+      king: King.new('white', [4, 0])
+    },
+    {
+      pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
+      pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
+      pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
+      rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
+      bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
+      king: King.new('black', [4, 7])
+    }
+  ].freeze
+  # DEFAULT_CHESS_HASH = { board_contents: Array.new(8) { Array.new(8) }, white: DEFAULT_BOARD[0], black: DEFAULT_BOARD[1],
+  #                       captured: [], available_moves: [], available_attacks: [], current_player: 'white',
+  #                       other_player: 'black' }.freeze
+
+  DEFAULT_CHESS_HASH = { '@board_contents' => Array.new(8) { Array.new(8) }, '@white' => DEFAULT_BOARD[0],
+                         '@black' => DEFAULT_BOARD[1], '@captured' => [], '@available_moves' => [],
+                         '@available_attacks' => [], '@current_player' => 'white', '@other_player' => 'black' }.freeze
 
   # def initialize(board_contents = Array.new(8) { [] })
-  def initialize
+  # def initialize(board_contents = Array.new(8) { Array.new(8) }, white = DEFAULT_BOARD[0], black = DEFAULT_BOARD[1],
+  #                captured = [], last_move = nil, last_double_step = nil, available_moves = [], available_attacks = [],
+  #                current_player = 'white', other_player = 'black')
+
+  def initialize(chess_board_hash = DEFAULT_CHESS_HASH)
+    @board_contents = chess_board_hash['@board_contents']
+    @white = chess_board_hash['@white']
+    @black = chess_board_hash['@black']
+    @captured = chess_board_hash['@captured']
+    @last_move = chess_board_hash['@last_move']
+    @last_double_step = chess_board_hash['@last_double_step']
+    @available_moves = chess_board_hash['@available_moves']
+    @available_attacks = chess_board_hash['@available_attacks']
+    @current_player = chess_board_hash['@current_player']
+    @other_player = chess_board_hash['@other_player']
+    default_positions
+
     normal_board = [
       {
         pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
@@ -149,17 +190,18 @@ class Board
       }
     ]
 
-    @white = normal_board[0]
-    @black = normal_board[1]
-    @board_contents = Array.new(8) { Array.new(8) }
-    @captured = []
-    @last_move = nil
-    @last_double_step = nil
-    @available_moves = []
-    @available_attacks = []
-    @current_player = 'white'
-    @other_player = 'black'
-    default_positions
+    # @board_contents = Array.new(8) { Array.new(8) }
+    # @white = normal_board[0]
+    # @black = normal_board[1]
+    # @captured = []
+    # @last_move = nil
+    # @last_double_step = nil
+    # @available_moves = []
+    # @available_attacks = []
+    # @current_player = 'white'
+    # @other_player = 'black'
+
+    # default_positions
   end
 
   def to_s(board_display = @board_contents, system_message = '', player = @current_player)
@@ -640,12 +682,10 @@ class Board
 
   def default_positions
     @white.each_value do |piece|
-      # piece.board = self
       @board_contents[piece.location[0]][piece.location[1]] = piece
     end
 
     @black.each_value do |piece|
-      # piece.board = self
       @board_contents[piece.location[0]][piece.location[1]] = piece
     end
   end

@@ -13,7 +13,7 @@ require 'msgpack'
 class Game
   attr_reader :current_player
 
-  GAME_TYPE_TEST = /^(1|2)$/.freeze
+  GAME_TYPE_TEST = /^(1|2|load|save)$/.freeze
   VALID_COORDINATES = /^([A-H]|[a-h])[1-8]$/.freeze
 
   def initialize
@@ -34,14 +34,14 @@ class Game
     # binding.pry
     game_type = nil
     while game_type.nil?
-      print "\nPress 1 to play against another human! "
+      print "\nPress 1 to play against another human! Type 'load' to load a saved game! "
       game_type = game_type_input
     end
     game_type
   end
 
   def game_type_input
-    game_type = gets.chomp
+    game_type = gets.chomp.downcase
     return game_type if valid_game_type?(game_type)
 
     puts 'Error: invalid input. Please try again.'.red
@@ -177,7 +177,29 @@ class Game
   end
 
   def load_game
-    
+    # TODO: add loading of saved games AND add serialize function to pieces
+
+    saves = Dir.entries('./saves').select { |f| File.file?("./saves/#{f}") }
+    if saves.empty?
+      puts "Sorry, no game saves available. Starting a new game...\n".green
+      Game.game_loop(secret_word, false)
+      return nil
+    else
+      puts 'Choose your save file:'
+      saves.each { |f| puts f.yellow }
+    end
+
+    print 'Which save would you like to load? '
+    save_name = gets.chomp
+    if File.exist?("./saves/#{save_name}")
+      save = File.open("./saves/#{save_name}").read
+      binding.pry
+      loaded_save = @chess_board.unserialize(save)
+      @chess_board = Board.new(loaded_save)
+      two_player_game_loop
+    else
+      puts 'Save not found.'
+    end
   end
 
   def checkmate?
