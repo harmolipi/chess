@@ -6,7 +6,7 @@
 # rubocop: disable Metrics/CyclomaticComplexity
 
 require_relative './board'
-require 'pry'
+require 'pry-byebug'
 require 'msgpack'
 
 # Class for chess game rules
@@ -53,6 +53,7 @@ class Game
 
   def two_player_game_loop
     until game_over?
+      # binding.pry
       @chess_board.to_s(@chess_board.board_contents, @check_message) # eventually change .to_s to .print_board
       chosen_piece = @chess_board.get_piece(coordinates_input)
       last_square = chosen_piece.location
@@ -168,11 +169,13 @@ class Game
   end
 
   def save_game
-    save = @chess_board.serialize
-    print 'Please enter a name for your save: '
+    # save = @chess_board.serialize
+    save = @chess_board.to_yaml
+    print "\nPlease enter a name for your save: "
     save_name = gets.chomp
     Dir.mkdir('./saves') unless Dir.exist?('./saves')
     File.open("./saves/#{save_name}", 'w') { |f| f.print save }
+    puts "\nGame saved as '#{save_name}'!"
     exit
   end
 
@@ -193,9 +196,12 @@ class Game
     save_name = gets.chomp
     if File.exist?("./saves/#{save_name}")
       save = File.open("./saves/#{save_name}").read
-      binding.pry
-      loaded_save = @chess_board.unserialize(save)
-      @chess_board = Board.new(loaded_save)
+      # loaded_save = @chess_board.unserialize(save)
+      # loaded_save = Board.from_yaml(save)
+      # binding.pry
+      loaded_save = YAML.load(save, permitted_classes: [Board, Piece, Rook, Pawn, Knight, Bishop, Queen, King, Symbol], aliases: true)
+      @chess_board = loaded_save
+      @current_player = @chess_board.current_player
       two_player_game_loop
     else
       puts 'Save not found.'
@@ -254,7 +260,7 @@ class Game
   end
 
   def end_game_conditions
-      if @chess_board.check?(@chess_board, @other_player)
+    if @chess_board.check?(@chess_board, @other_player)
       @check_message = 'Check!'.blue
       if @chess_board.checkmate?
         @checkmate = true

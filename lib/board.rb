@@ -13,15 +13,15 @@ require_relative './pieces/bishop'
 require_relative './pieces/queen'
 require_relative './pieces/king'
 require_relative './colors'
-require 'pry'
+require 'pry-byebug'
 require 'msgpack'
-require_relative './BasicSerializable'
+require_relative './basic_serializable'
 
 # Class handling the chess board, its moves, and its contents
 class Board
   include BasicSerializable
 
-  attr_reader :board_contents, :white, :black, :last_move, :last_double_step, :available_moves, :available_attacks
+  attr_reader :board_contents, :white, :black, :last_move, :last_double_step, :available_moves, :available_attacks, :current_player
   attr_writer :current_player, :other_player
 
   POSSIBLE_MOVE = " \u25CF ".red
@@ -336,6 +336,7 @@ class Board
 
     # TODO: Something is wrong with promoting Pawns to Queens - need to fix this
 
+    # binding.pry if player == 'black'
     player_pieces = player == 'white' ? chess_board.white : chess_board.black
     other_player_pieces = player == 'white' ? chess_board.black : chess_board.white
     other_player_pieces.any? do |piece|
@@ -344,7 +345,7 @@ class Board
       # chess_board.available_attacks.include?(player_pieces[:king].location)
       other_player_pieces[piece[0]]&.possible_attacks.any? do |direction|
         direction.any? do |possible_attack|
-          # next if get_piece(possible_attack).nil?
+          break unless get_piece(possible_attack).nil?
           # binding.pry if other_player_pieces[piece[0]].is_a?(Queen)
 
           possible_attack == player_pieces[:king]&.location
@@ -636,10 +637,11 @@ class Board
   end
 
   def promote(piece, promotion)
+    # binding.pry
     current_player_pieces = @current_player == 'white' ? @white : @black
     old_piece_key = current_player_pieces.find { |_key, value| value == piece }[0]
-    invalid_move = false
-    until invalid_move
+    valid_promotion = false
+    until valid_promotion
       new_piece = case promotion.downcase
                   when 'queen'
                     Queen.new(@current_player, piece.location)
@@ -652,7 +654,7 @@ class Board
                   when 'pawn'
                     piece
                   end
-      invalid_move = test_possible_check(new_piece, new_piece.location)
+      valid_promotion = test_possible_check(new_piece, new_piece.location) ? false : true
     end
     @current_player == 'white' ? @white[old_piece_key] = new_piece : @black[old_piece_key] = new_piece
     # need to correctly add promoted piece to player's pieces
@@ -688,6 +690,43 @@ class Board
     @black.each_value do |piece|
       @board_contents[piece.location[0]][piece.location[1]] = piece
     end
+  end
+
+  def serialize_child(obj)
+    obj['@board_contents'] = @board_contents.map { |row| row.map { |piece| piece.nil? ? nil : piece.serialize } }
+    obj
+  end
+
+  # def to_yaml
+  #   YAML.dump ({
+  #     '@board_contents' => @board_contents,
+  #     '@white' => @white,
+  #     '@black' => @black,
+  #     '@captured' => @captured,
+  #     '@last_move' => @last_move,
+  #     '@last_double_step' => @last_double_step,
+  #     '@available_moves' => @available_moves,
+  #     '@available_attacks' => @available_attacks,
+  #     '@current_player' => @current_player,
+  #     '@other_player' => @other_player
+  #   })
+  # end
+
+  # def self.from_yaml(save)
+  #   game_file = YAML.load(save)
+  #   binding.pry
+  #   game_file
+  #   # self.new(game_file['@board_contents'], game_file['@white'], game_file['@black'], game_file['@captured'], game_file['@last_move'], game_file['@last_double_step'], game_file['@available_moves'], game_file['@available_attacks'], game_file['@current_player'], game_file['@other_player'])
+
+  #   # DEFAULT_CHESS_HASH = { '@board_contents' => Array.new(8) { Array.new(8) }, '@white' => DEFAULT_BOARD[0],
+  #   #                      '@black' => DEFAULT_BOARD[1], '@captured' => [], '@available_moves' => [],
+  #   #                      '@available_attacks' => [], '@current_player' => 'white', '@other_player' => 'black' }.freeze
+
+
+  # end
+
+  def unserialize_child(obj)
+
   end
 end
 

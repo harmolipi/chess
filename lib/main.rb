@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 require_relative './game'
-require 'pry'
+require 'pry-byebug'
 
 chess_game = Game.new
 
 chess_game.intro_text
-if chess_game.game_type == '1'
+game_type = chess_game.game_type
+if game_type == '1'
   chess_game.two_player_game_loop
   # puts '2-player'
-elsif chess_game.game_type == 'load'
-  binding.pry
+elsif game_type == 'load'
   chess_game.load_game
 else
   # chess_game.one_player_game_loop

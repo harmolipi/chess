@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative './piece'
+require 'yaml'
 
 # Class for the rook chess piece
 class Rook < Piece

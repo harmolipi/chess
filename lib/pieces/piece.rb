@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
-require 'pry'
+require_relative '../basic_serializable'
+require 'yaml'
+require 'pry-byebug'
 
 # General class for all pieces
 class Piece
+  include BasicSerializable
+
   attr_reader :symbol, :color
   attr_writer :board
   attr_accessor :location
