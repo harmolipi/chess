@@ -28,7 +28,7 @@ class Game
   def game_type
     game_type = nil
     while game_type.nil?
-      print "\nPress 1 to play against another human! Type 'load' to load a saved game! "
+      print "\nPress 1 to play against another human! Type 'load' to load a saved game! ".green
       game_type = game_type_input
     end
     game_type
