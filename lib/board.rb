@@ -14,15 +14,12 @@ require_relative './pieces/queen'
 require_relative './pieces/king'
 require_relative './colors'
 require 'pry-byebug'
-require 'msgpack'
-require_relative './basic_serializable'
 
 # Class handling the chess board, its moves, and its contents
 class Board
-  include BasicSerializable
 
-  attr_reader :board_contents, :white, :black, :last_move, :last_double_step, :available_moves, :available_attacks, :current_player
-  attr_writer :current_player, :other_player
+  attr_reader :board_contents, :white, :black, :last_move, :last_double_step, :available_moves, :available_attacks
+  attr_accessor :current_player, :other_player
 
   POSSIBLE_MOVE = " \u25CF ".red
   VALID_COORDINATES = /^([A-H]|[a-h])[1-8]$/.freeze
@@ -51,18 +48,9 @@ class Board
       king: King.new('black', [4, 7])
     }
   ].freeze
-  # DEFAULT_CHESS_HASH = { board_contents: Array.new(8) { Array.new(8) }, white: DEFAULT_BOARD[0], black: DEFAULT_BOARD[1],
-  #                       captured: [], available_moves: [], available_attacks: [], current_player: 'white',
-  #                       other_player: 'black' }.freeze
-
   DEFAULT_CHESS_HASH = { '@board_contents' => Array.new(8) { Array.new(8) }, '@white' => DEFAULT_BOARD[0],
                          '@black' => DEFAULT_BOARD[1], '@captured' => [], '@available_moves' => [],
                          '@available_attacks' => [], '@current_player' => 'white', '@other_player' => 'black' }.freeze
-
-  # def initialize(board_contents = Array.new(8) { [] })
-  # def initialize(board_contents = Array.new(8) { Array.new(8) }, white = DEFAULT_BOARD[0], black = DEFAULT_BOARD[1],
-  #                captured = [], last_move = nil, last_double_step = nil, available_moves = [], available_attacks = [],
-  #                current_player = 'white', other_player = 'black')
 
   def initialize(chess_board_hash = DEFAULT_CHESS_HASH)
     @board_contents = chess_board_hash['@board_contents']
@@ -76,136 +64,9 @@ class Board
     @current_player = chess_board_hash['@current_player']
     @other_player = chess_board_hash['@other_player']
     default_positions
-
-    normal_board = [
-      {
-        pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
-        pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
-        pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
-        rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
-        bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
-        king: King.new('white', [4, 0])
-      },
-      {
-        pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
-        pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
-        pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
-        rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
-        bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
-        king: King.new('black', [4, 7])
-      }
-    ]
-
-    temp_small_board = [
-      {
-        pawn1: Pawn.new('white', [1, 1]), pawn2: Pawn.new('white', [2, 1]), king: King.new('white', [4, 0])
-      },
-      {
-        pawn1: Pawn.new('black', [1, 6]), pawn2: Pawn.new('black', [2, 6]), king: King.new('black', [4, 7])
-      }
-    ]
-
-    en_passant_board = [
-      {
-        pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
-        pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
-        pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
-        rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 4]),
-        bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
-        king: King.new('white', [4, 0])
-      },
-      {
-        pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 3]),
-        pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
-        pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
-        rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
-        bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
-        king: King.new('black', [4, 7])
-      }
-    ]
-
-    almost_check = [
-      {
-        pawn1: Pawn.new('white', [2, 6]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
-        pawn4: Pawn.new('white', [3, 1]), pawn5: Pawn.new('white', [4, 1]), pawn6: Pawn.new('white', [5, 1]),
-        pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
-        rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [1, 0]), knight2: Knight.new('white', [6, 0]),
-        bishop1: Bishop.new('white', [2, 0]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [3, 0]),
-        king: King.new('white', [4, 0])
-      },
-      {
-        pawn1: Pawn.new('black', [0, 1]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 4]),
-        pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
-        pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 4]),
-        rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
-        bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
-        king: King.new('black', [4, 7])
-      }
-    ]
-
-    checkmate_board1 = [
-      {
-        queen: Queen.new('white', [4, 5]), knight1: Knight.new('white', [3, 4]), king: King.new('white', [4, 0], true)
-        # rook1: Rook.new('white', [0, 0]), rook2: Rook.new('white', [7, 0])
-      },
-      {
-        king: King.new('black', [4, 7], true)
-      }
-    ]
-
-    checkmate_board2 = [
-      {
-        pawn1: Pawn.new('white', [4, 6]), pawn2: Pawn.new('white', [3, 4]), king: King.new('white', [4, 5])
-      },
-      {
-        king: King.new('black', [4, 7])
-      }
-    ]
-
-    checkmate_board3 = [
-      {
-        rook1: Rook.new('white', [3, 7]), rook2: Rook.new('white', [5, 4]), king: King.new('white', [4, 0])
-      },
-      {
-        king: King.new('black', [7, 6]), pawn: Pawn.new('black', [1, 6])
-      }
-    ]
-
-    castling_board = [
-      {
-        pawn1: Pawn.new('white', [0, 1]), pawn2: Pawn.new('white', [1, 1]), pawn3: Pawn.new('white', [2, 1]),
-        pawn4: Pawn.new('white', [3, 2]), pawn5: Pawn.new('white', [4, 2]), pawn6: Pawn.new('white', [5, 1]),
-        pawn7: Pawn.new('white', [6, 1]), pawn8: Pawn.new('white', [7, 1]), rook1: Rook.new('white', [0, 0]),
-        rook2: Rook.new('white', [7, 0]), knight1: Knight.new('white', [2, 2]), knight2: Knight.new('white', [7, 2]),
-        bishop1: Bishop.new('white', [3, 1]), bishop2: Bishop.new('white', [5, 0]), queen: Queen.new('white', [4, 1]),
-        king: King.new('white', [4, 0])
-      },
-      {
-        pawn1: Pawn.new('black', [0, 6]), pawn2: Pawn.new('black', [1, 6]), pawn3: Pawn.new('black', [2, 6]),
-        pawn4: Pawn.new('black', [3, 6]), pawn5: Pawn.new('black', [4, 6]), pawn6: Pawn.new('black', [5, 6]),
-        pawn7: Pawn.new('black', [6, 6]), pawn8: Pawn.new('black', [7, 6]), rook1: Rook.new('black', [0, 7]),
-        rook2: Rook.new('black', [7, 7]), knight1: Knight.new('black', [1, 7]), knight2: Knight.new('black', [6, 7]),
-        bishop1: Bishop.new('black', [2, 7]), bishop2: Bishop.new('black', [5, 7]), queen: Queen.new('black', [3, 7]),
-        king: King.new('black', [4, 7])
-      }
-    ]
-
-    # @board_contents = Array.new(8) { Array.new(8) }
-    # @white = normal_board[0]
-    # @black = normal_board[1]
-    # @captured = []
-    # @last_move = nil
-    # @last_double_step = nil
-    # @available_moves = []
-    # @available_attacks = []
-    # @current_player = 'white'
-    # @other_player = 'black'
-
-    # default_positions
   end
 
-  def to_s(board_display = @board_contents, system_message = '', player = @current_player)
-    # binding.pry
+  def print_board(board_display = @board_contents, system_message = '', player = @current_player)
     system 'clear'
     puts "     -----  CURRENT TURN: #{player.upcase}  -----".green
     puts system_message
@@ -224,21 +85,16 @@ class Board
 
   def square(index, contents)
     background = if @last_move == contents && !@last_move.nil?
-                   MAGENTA # using 106 (light blue) for last move, and 42 (green) for current selection
+                   MAGENTA
                  else
-                   index.odd? ? BLUE : CYAN # 47 = gray, 44 = blue
+                   index.odd? ? BLUE : CYAN
                  end
     square = contents.nil? ? '   ' : contents
     "\e[#{background}m#{square}\e[0m"
   end
 
   def get_piece(coordinates, board = @board_contents)
-    # begin
-    # binding.pry if coordinates[0].is_a?(Array)
     board[coordinates[0]][coordinates[1]]
-    # rescue
-    #   binding.pry
-    # end
   end
 
   def display_possible_moves(piece, system_message = '')
@@ -246,9 +102,8 @@ class Board
     piece_square = possible_moves_board[piece.location[0]][piece.location[1]]
     possible_moves_board[piece.location[0]][piece.location[1]] = piece_square.symbol.on_green
     update_possible_moves(piece)
-    # binding.pry if piece.is_a?(King)
     possible_moves_board = map_possible_moves(piece, possible_moves_board)
-    to_s(possible_moves_board, system_message)
+    print_board(possible_moves_board, system_message)
   end
 
   def update_possible_moves(piece)
@@ -256,16 +111,10 @@ class Board
     @available_attacks = []
 
     possible_moves = piece.is_a?(King) ? king_moves(piece) : piece.possible_moves
-    # possible_moves = piece.possible_moves
-    # binding.pry if piece.is_a?(King) && piece.color == 'white'
-
     possible_moves.each do |direction|
       direction&.each do |possible_move|
-        # binding.pry if possible_move == [6, 0] && piece.is_a?(King)
-
         break if possible_move.nil? || !can_move?(piece, possible_move)
 
-        # binding.pry if piece.is_a?(King) && piece.color == 'white'
         @available_moves << possible_move
       end
     end
@@ -273,36 +122,27 @@ class Board
     possible_attacks = piece.is_a?(Pawn) ? pawn_attacks(piece) : piece.possible_attacks
 
     possible_attacks.each do |direction|
-      direction.each do |possible_attack|
-        # binding.pry if piece.is_a?(Queen) && piece.color == 'white'
-        # binding.pry if piece.color == 'white'
-        # binding.pry
-        break unless can_attack?(piece, possible_attack) && !test_possible_check(piece, possible_attack)
+      direction&.each do |possible_attack|
+        break if !get_piece(possible_attack).nil? && !can_attack?(piece, possible_attack)
+        
+        next unless can_attack?(piece, possible_attack) && !test_possible_check(piece, possible_attack)
 
-        # for some reason queen's available attacks aren't being added when checking for check - but moves are
         @available_attacks << possible_attack
+        break
       end
     end
   end
 
   def map_possible_moves(piece, board = self)
-    # binding.pry if piece.is_a?(Queen)
     @available_moves.each do |move|
-      # binding.pry if piece.is_a?(King)
       board[move[0]][move[1]] = POSSIBLE_MOVE unless test_possible_check(piece, move, @current_player)
     end
 
     @available_attacks.each do |attack|
-      # working on this now - not sure if attacks currently test for check (just added next line)
       next if test_possible_check(piece, attack)
 
       board_square = get_piece(attack, @board_contents)
-      if board_square.nil?
-        board[attack[0]][attack[1]] = ' P '.on_red
-      else
-        board[attack[0]][attack[1]] = board_square.symbol.on_red
-      end
-      # binding.pry
+      board[attack[0]][attack[1]] = board_square.nil? ? ' P '.on_red : board_square.symbol.on_red
     end
     board
   end
@@ -313,46 +153,31 @@ class Board
     temp_board = copy_board
     temp_piece = temp_board.get_piece(piece.location)
 
-    # This one was causing it to crash - might not need it:
-    # temp_board.update_possible_moves(temp_piece)
 
-
-    # binding.pry if temp_other_player_piece.is_a?(Queen)
     target_square = temp_board.get_piece(move)
 
     if !target_square.nil? || en_passant?(temp_piece, move)
       temp_board.attack(temp_piece, move)
     else
-      # binding.pry if temp_piece.is_a?(King) && temp_piece.color == 'black'
       temp_board.move(temp_piece, move)
     end
 
-    # binding.pry
     check?(temp_board, player)
   end
 
   def check?(chess_board = self, player = @current_player)
     # Checks whether the player's king is currently in check
 
-    # TODO: Something is wrong with promoting Pawns to Queens - need to fix this
-
-    # binding.pry if player == 'black'
     player_pieces = player == 'white' ? chess_board.white : chess_board.black
     other_player_pieces = player == 'white' ? chess_board.black : chess_board.white
     other_player_pieces.any? do |piece|
-      # binding.pry
-      # chess_board.update_possible_moves(other_player_pieces[piece[0]])
-      # chess_board.available_attacks.include?(player_pieces[:king].location)
       other_player_pieces[piece[0]]&.possible_attacks.any? do |direction|
         direction.any? do |possible_attack|
-          break unless get_piece(possible_attack).nil?
-          # binding.pry if other_player_pieces[piece[0]].is_a?(Queen)
-
-          possible_attack == player_pieces[:king]&.location
+          king_in_danger = possible_attack == player_pieces[:king]&.location
+          return king_in_danger if king_in_danger
+          break unless get_piece(possible_attack).nil? && other_player_pieces[piece[0]].is_a?(Knight)
         end
       end
-
-      # other_player_pieces[piece[0]].possible_attacks.any? { |direction| direction.include?(player_pieces[:king].location) }
     end
   end
 
@@ -404,7 +229,6 @@ class Board
   end
 
   def copy_board(chess_board = self)
-    # binding.pry
     Marshal.load(Marshal.dump(chess_board))
   end
 
@@ -414,18 +238,16 @@ class Board
     board_square = selection_board[selection[0]][selection[1]]
     selection_board[selection[0]][selection[1]] = board_square.symbol.on_green
 
-    to_s(selection_board)
+    print_board(selection_board)
   end
 
   def temp_board_array
     # copies @board_contents to a temporary local board array
     board_array = []
-    # binding.pry
     @board_contents.each_with_index do |column, index|
       board_array << []
       column.each { |square| board_array[index] << square.dup }
     end
-    # binding.pry
     board_array
   end
 
@@ -434,39 +256,24 @@ class Board
   end
 
   def enemy_piece?(piece, possible_enemy)
-    # binding.pry
-    # TODO perhaps queen and king aren't being marked as enemies for some reason
     return false if possible_enemy == POSSIBLE_MOVE
 
     piece.color != possible_enemy.color unless possible_enemy.nil?
   end
 
   def can_move?(piece, target, player = @current_player)
-    # move_board = temp_board_array
-    # binding.pry if target == [3, 7]
-    # other_player = player == @current_player ? @other_player : @current_player
-
     return true if castle_move?(piece, target) && !test_possible_check(piece, target, player)
 
     target_piece = get_piece(target)
-
-    # update_possible_moves(piece, move_board) # think this might be what's throwing off the board ***
-
     piece.possible_moves.any? { |direction| direction.include?(target) } && target_piece.nil?
   end
 
-  def can_attack?(piece, target, player = @current_player)
-    # Just checks whether piece can attack target, not whether it will result in check
-
+  def can_attack?(piece, target)
     possible_attacks = piece.is_a?(Pawn) ? pawn_attacks(piece) : piece.possible_attacks
-    # binding.pry
 
     possible_attacks.any? do |direction|
       direction.any? do |possible_attack|
-        # binding.pry
-        # binding.pry if piece.is_a?(Pawn) && piece.color == 'black'
-        possible_attack == target && (enemy_piece?(piece, get_piece(target)) || en_passant?(piece, possible_attack)) # &&
-          # !test_possible_check(piece, possible_attack, player)
+        possible_attack == target && (enemy_piece?(piece, get_piece(target)) || en_passant?(piece, possible_attack))
       end
     end
   end
@@ -500,17 +307,13 @@ class Board
 
   def set_last_double_step(piece, target)
     @last_double_step = piece.is_a?(Pawn) && ((piece.location[1] - target[1]).abs == 2) ? piece : nil
-    # binding.pry
   end
 
   def attack(piece, target_location)
     target_piece = get_piece(target_location)
     other_player_pieces = @other_player == 'black' ? @black : @white
     @captured << target_piece
-    # other_player_pieces.reject! { |_taken_piece_name, taken_piece| taken_piece == get_piece(target_location) }
-    # binding.pry
     if en_passant?(piece, target_location)
-      # binding.pry
       @board_contents[target_location[0]][target_location[1] - 1 * piece.movement_direction] = nil
     end
     update_piece_location(piece, target_location)
@@ -518,24 +321,7 @@ class Board
   end
 
   def any_possible_moves?(piece)
-    # binding.pry
     update_possible_moves(piece)
-
-    # TODO:
-    # Original code: worked except for not allowing attack in case of check
-  
-    # binding.pry
-    # piece.possible_moves.any? do |direction|
-    #   direction.any? do |move|
-    #     # binding.pry if piece.is_a?(Pawn)
-    #     !test_possible_check(piece, move, @current_player) && (@available_moves.include?(move) || @available_attacks.include?(move))
-    #   end
-    # end
-
-    # New code:
-
-    # can_move = false
-    # binding.pry
 
     can_move = @available_moves.any? do |move|
       !test_possible_check(piece, move, @current_player)
@@ -543,15 +329,12 @@ class Board
 
     return can_move if can_move
 
-    can_move = @available_attacks.any? do |attack|
+    @available_attacks.any? do |attack|
       !test_possible_check(piece, attack, @current_player)
     end
-
-    can_move
   end
 
   def update_piece_location(piece, target_location, chess_board = @board_contents)
-    # binding.pry if piece.nil?
     chess_board[piece.location[0]][piece.location[1]] = nil
     piece.location = target_location
     chess_board[target_location[0]][target_location[1]] = piece
@@ -586,31 +369,22 @@ class Board
   def castle_move(king)
     return nil if king.has_moved
 
-    # rooks = king.color == 'white' ? [@white[:rook1], @white[:rook2]] : [@black[:rook1], @black[:rook2]]
-
-    # castle_moves = Array.new(2) { [] }
-    # rooks << castle_moves[1]
-
     castle_moves = []
 
     if king.color == 'white'
       if get_piece([1, 0]).nil? && get_piece([2, 0]).nil? && get_piece([3, 0]).nil?
-        # castle_moves[0] << rooks[0]
         castle_moves << [2, 0]
       end
 
       if get_piece([5, 0]).nil? && get_piece([6, 0]).nil?
-        # castle_moves[0] << rooks[1]
         castle_moves << [6, 0]
       end
     else
       if get_piece([1, 7]).nil? && get_piece([2, 7]).nil? && get_piece([3, 7]).nil?
-        # castle_moves[0] << rooks[0]
         castle_moves << [2, 7]
       end
 
       if get_piece([5, 7]).nil? && get_piece([6, 7]).nil?
-        # castle_moves[0] << rooks[1]
         castle_moves << [6, 7]
       end
     end
@@ -621,7 +395,6 @@ class Board
     moves = piece.possible_moves
     castle_moves = castle_move(piece)
     castle_moves&.each { |move| moves[8] << move }
-    # moves[8] << castle_moves if castle_moves
     moves
   end
 
@@ -636,12 +409,18 @@ class Board
     (@current_player == 'black' && piece.location[1].zero?))
   end
 
-  def promote(piece, promotion)
-    # binding.pry
+  def promotion_input
+    print "\nEnter what you'd like to promote your pawn to: ".green
+    gets.chomp
+  end
+
+  def promote(piece)
+    print_board
     current_player_pieces = @current_player == 'white' ? @white : @black
     old_piece_key = current_player_pieces.find { |_key, value| value == piece }[0]
-    valid_promotion = false
-    until valid_promotion
+    new_piece = ''
+    loop do
+      promotion = promotion_input
       new_piece = case promotion.downcase
                   when 'queen'
                     Queen.new(@current_player, piece.location)
@@ -653,12 +432,15 @@ class Board
                     Bishop.new(@current_player, piece.location)
                   when 'pawn'
                     piece
+                  else
+                    puts "\nInvalid entry, please try again.".red
+                    redo
                   end
-      valid_promotion = test_possible_check(new_piece, new_piece.location) ? false : true
+      break unless test_possible_check(new_piece, new_piece.location)
+
+      puts "\nInvalid entry, please try again.".red
     end
     @current_player == 'white' ? @white[old_piece_key] = new_piece : @black[old_piece_key] = new_piece
-    # need to correctly add promoted piece to player's pieces
-    # binding.pry
     @last_move = new_piece
     update_piece_location(new_piece, piece.location)
   end
@@ -695,38 +477,6 @@ class Board
   def serialize_child(obj)
     obj['@board_contents'] = @board_contents.map { |row| row.map { |piece| piece.nil? ? nil : piece.serialize } }
     obj
-  end
-
-  # def to_yaml
-  #   YAML.dump ({
-  #     '@board_contents' => @board_contents,
-  #     '@white' => @white,
-  #     '@black' => @black,
-  #     '@captured' => @captured,
-  #     '@last_move' => @last_move,
-  #     '@last_double_step' => @last_double_step,
-  #     '@available_moves' => @available_moves,
-  #     '@available_attacks' => @available_attacks,
-  #     '@current_player' => @current_player,
-  #     '@other_player' => @other_player
-  #   })
-  # end
-
-  # def self.from_yaml(save)
-  #   game_file = YAML.load(save)
-  #   binding.pry
-  #   game_file
-  #   # self.new(game_file['@board_contents'], game_file['@white'], game_file['@black'], game_file['@captured'], game_file['@last_move'], game_file['@last_double_step'], game_file['@available_moves'], game_file['@available_attacks'], game_file['@current_player'], game_file['@other_player'])
-
-  #   # DEFAULT_CHESS_HASH = { '@board_contents' => Array.new(8) { Array.new(8) }, '@white' => DEFAULT_BOARD[0],
-  #   #                      '@black' => DEFAULT_BOARD[1], '@captured' => [], '@available_moves' => [],
-  #   #                      '@available_attacks' => [], '@current_player' => 'white', '@other_player' => 'black' }.freeze
-
-
-  # end
-
-  def unserialize_child(obj)
-
   end
 end
 
