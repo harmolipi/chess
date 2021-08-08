@@ -172,6 +172,7 @@ class Game
     end
 
     save = File.open("./saves/#{save_name}").read
+    # not sure why I need the below arguments for YAML#safe_load but this is the only way it works here
     loaded_save = YAML.safe_load(save, permitted_classes: [Board, Piece, Rook, Pawn, Knight, Bishop, Queen, King,
                                                            Symbol], aliases: true)
     @chess_board = loaded_save
