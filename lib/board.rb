@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop: disable Metrics/AbcSize
-# rubocop: disable Metrics/MethodLength
-# rubocop: disable Metrics/ClassLength
-# rubocop: disable Metrics/CyclomaticComplexity
-
 require_relative './game'
 require_relative './pieces/pawn'
 require_relative './pieces/rook'
@@ -13,11 +8,9 @@ require_relative './pieces/bishop'
 require_relative './pieces/queen'
 require_relative './pieces/king'
 require_relative './colors'
-require 'pry-byebug'
 
 # Class handling the chess board, its moves, and its contents
 class Board
-
   attr_reader :board_contents, :white, :black, :last_move, :last_double_step, :available_moves, :available_attacks
   attr_accessor :current_player, :other_player
 
@@ -479,8 +472,3 @@ class Board
     obj
   end
 end
-
-# rubocop: enable Metrics/CyclomaticComplexity
-# rubocop: enable Metrics/ClassLength
-# rubocop: enable Metrics/MethodLength
-# rubocop: enable Metrics/AbcSize

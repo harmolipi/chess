@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop: disable Metrics/MethodLength
-# rubocop: disable Metrics/ClassLength
-# rubocop: disable Metrics/AbcSize
-
 require_relative './board'
-require 'pry-byebug'
 
 # Class for chess game rules
 class Game
@@ -207,7 +202,3 @@ class Game
     puts @stalemate ? "Stalemate! No winner!\n".green : "Checkmate! Congrats #{@other_player} player, you win!\n".green
   end
 end
-
-# rubocop: enable Metrics/AbcSize
-# rubocop: enable Metrics/ClassLength
-# rubocop: enable Metrics/MethodLength

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative './game'
-require 'pry-byebug'
 
 chess_game = Game.new
 

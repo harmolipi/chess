@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop: disable Metrics/AbcSize
-
 require_relative './piece'
-require 'pry'
 
 # Class for the pawn chess piece
 class Pawn < Piece
@@ -34,5 +31,3 @@ class Pawn < Piece
     possible_attacks
   end
 end
-
-# rubocop: enable Metrics/AbcSize

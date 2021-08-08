@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'yaml'
-require 'pry-byebug'
 
 # General class for all pieces
 class Piece
