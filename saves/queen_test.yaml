@@ -1,0 +1,321 @@
+--- !ruby/object:Board
+board_contents:
+- - &28 !ruby/object:Rook
+    color: white
+    symbol: " ♖ "
+    location: &1
+    - 0
+    - 0
+    original_location: *1
+    has_moved: false
+  - &20 !ruby/object:Pawn
+    color: white
+    symbol: " ♙ "
+    location: &2
+    - 0
+    - 1
+    original_location: *2
+    movement_direction: 1
+  - 
+  - 
+  - 
+  - &36 !ruby/object:Pawn
+    color: black
+    symbol: " ♟ "
+    location:
+    - 0
+    - 5
+    original_location:
+    - 0
+    - 6
+    movement_direction: -1
+  - 
+  - &44 !ruby/object:Rook
+    color: black
+    symbol: " ♜ "
+    location: &3
+    - 0
+    - 7
+    original_location: *3
+    has_moved: false
+- - &30 !ruby/object:Knight
+    color: white
+    symbol: " ♘ "
+    location:
+    - 1
+    - 0
+  - &21 !ruby/object:Pawn
+    color: white
+    symbol: " ♙ "
+    location: &4
+    - 1
+    - 1
+    original_location: *4
+    movement_direction: 1
+  - 
+  - 
+  - 
+  - 
+  - &37 !ruby/object:Pawn
+    color: black
+    symbol: " ♟ "
+    location: &5
+    - 1
+    - 6
+    original_location: *5
+    movement_direction: -1
+  - &46 !ruby/object:Knight
+    color: black
+    symbol: " ♞ "
+    location:
+    - 1
+    - 7
+- - &32 !ruby/object:Bishop
+    color: white
+    symbol: " ♗ "
+    location:
+    - 2
+    - 0
+  - &22 !ruby/object:Pawn
+    color: white
+    symbol: " ♙ "
+    location: &6
+    - 2
+    - 1
+    original_location: *6
+    movement_direction: 1
+  - 
+  - 
+  - 
+  - 
+  - &38 !ruby/object:Pawn
+    color: black
+    symbol: " ♟ "
+    location: &7
+    - 2
+    - 6
+    original_location: *7
+    movement_direction: -1
+  - &48 !ruby/object:Bishop
+    color: black
+    symbol: " ♝ "
+    location:
+    - 2
+    - 7
+- - 
+  - 
+  - &34 !ruby/object:Queen
+    color: white
+    symbol: " ♕ "
+    location:
+    - 3
+    - 2
+  - &23 !ruby/object:Pawn
+    color: white
+    symbol: " ♙ "
+    location:
+    - 3
+    - 3
+    original_location:
+    - 3
+    - 1
+    movement_direction: 1
+  - 
+  - 
+  - &39 !ruby/object:Pawn
+    color: black
+    symbol: " ♟ "
+    location: &8
+    - 3
+    - 6
+    original_location: *8
+    movement_direction: -1
+  - &50 !ruby/object:Queen
+    color: black
+    symbol: " ♛ "
+    location:
+    - 3
+    - 7
+- - &35 !ruby/object:King
+    color: white
+    symbol: " ♔ "
+    location: &9
+    - 4
+    - 0
+    original_location: *9
+    has_moved: false
+  - &24 !ruby/object:Pawn
+    color: white
+    symbol: " ♙ "
+    location: &10
+    - 4
+    - 1
+    original_location: *10
+    movement_direction: 1
+  - 
+  - 
+  - &40 !ruby/object:Pawn
+    color: black
+    symbol: " ♟ "
+    location:
+    - 4
+    - 4
+    original_location:
+    - 4
+    - 6
+    movement_direction: -1
+  - 
+  - 
+  - &51 !ruby/object:King
+    color: black
+    symbol: " ♚ "
+    location: &11
+    - 4
+    - 7
+    original_location: *11
+    has_moved: false
+- - &33 !ruby/object:Bishop
+    color: white
+    symbol: " ♗ "
+    location:
+    - 5
+    - 0
+  - &25 !ruby/object:Pawn
+    color: white
+    symbol: " ♙ "
+    location: &12
+    - 5
+    - 1
+    original_location: *12
+    movement_direction: 1
+  - 
+  - 
+  - 
+  - 
+  - &41 !ruby/object:Pawn
+    color: black
+    symbol: " ♟ "
+    location: &13
+    - 5
+    - 6
+    original_location: *13
+    movement_direction: -1
+  - &49 !ruby/object:Bishop
+    color: black
+    symbol: " ♝ "
+    location:
+    - 5
+    - 7
+- - &31 !ruby/object:Knight
+    color: white
+    symbol: " ♘ "
+    location:
+    - 6
+    - 0
+  - &26 !ruby/object:Pawn
+    color: white
+    symbol: " ♙ "
+    location: &14
+    - 6
+    - 1
+    original_location: *14
+    movement_direction: 1
+  - 
+  - 
+  - 
+  - 
+  - &42 !ruby/object:Pawn
+    color: black
+    symbol: " ♟ "
+    location: &15
+    - 6
+    - 6
+    original_location: *15
+    movement_direction: -1
+  - &47 !ruby/object:Knight
+    color: black
+    symbol: " ♞ "
+    location:
+    - 6
+    - 7
+- - &29 !ruby/object:Rook
+    color: white
+    symbol: " ♖ "
+    location: &16
+    - 7
+    - 0
+    original_location: *16
+    has_moved: false
+  - &27 !ruby/object:Pawn
+    color: white
+    symbol: " ♙ "
+    location: &17
+    - 7
+    - 1
+    original_location: *17
+    movement_direction: 1
+  - 
+  - 
+  - 
+  - 
+  - &43 !ruby/object:Pawn
+    color: black
+    symbol: " ♟ "
+    location: &18
+    - 7
+    - 6
+    original_location: *18
+    movement_direction: -1
+  - &45 !ruby/object:Rook
+    color: black
+    symbol: " ♜ "
+    location: &19
+    - 7
+    - 7
+    original_location: *19
+    has_moved: false
+white:
+  :pawn1: *20
+  :pawn2: *21
+  :pawn3: *22
+  :pawn4: *23
+  :pawn5: *24
+  :pawn6: *25
+  :pawn7: *26
+  :pawn8: *27
+  :rook1: *28
+  :rook2: *29
+  :knight1: *30
+  :knight2: *31
+  :bishop1: *32
+  :bishop2: *33
+  :queen: *34
+  :king: *35
+black:
+  :pawn1: *36
+  :pawn2: *37
+  :pawn3: *38
+  :pawn4: *39
+  :pawn5: *40
+  :pawn6: *41
+  :pawn7: *42
+  :pawn8: *43
+  :rook1: *44
+  :rook2: *45
+  :knight1: *46
+  :knight2: *47
+  :bishop1: *48
+  :bishop2: *49
+  :queen: *50
+  :king: *51
+captured: []
+last_move: *36
+last_double_step: 
+available_moves:
+- - 0
+  - 2
+- - 0
+  - 3
+available_attacks: []
+current_player: white
+other_player: black

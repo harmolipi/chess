@@ -1,0 +1,155 @@
+--- !ruby/object:Board
+board_contents:
+- - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+- - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+- - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+- - 
+  - 
+  - 
+  - 
+  - &3 !ruby/object:Knight
+    color: white
+    symbol: " ♘ "
+    location:
+    - 3
+    - 4
+  - 
+  - 
+  - 
+- - &4 !ruby/object:King
+    color: white
+    symbol: " ♔ "
+    location: &1
+    - 4
+    - 0
+    original_location: *1
+    has_moved: true
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - &5 !ruby/object:King
+    color: black
+    symbol: " ♚ "
+    location:
+    - 4
+    - 7
+    original_location:
+    - 3
+    - 7
+    has_moved: true
+- - 
+  - 
+  - 
+  - 
+  - 
+  - &2 !ruby/object:Queen
+    color: white
+    symbol: " ♕ "
+    location:
+    - 5
+    - 5
+  - 
+  - 
+- - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+- - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+white:
+  :queen: *2
+  :knight1: *3
+  :king: *4
+black:
+  :king: *5
+captured: []
+last_move: *5
+last_double_step: 
+available_moves:
+- - 5
+  - 6
+- - 5
+  - 7
+- - 6
+  - 6
+- - 7
+  - 7
+- - 6
+  - 5
+- - 7
+  - 5
+- - 6
+  - 4
+- - 7
+  - 3
+- - 5
+  - 4
+- - 5
+  - 3
+- - 5
+  - 2
+- - 5
+  - 1
+- - 5
+  - 0
+- - 4
+  - 4
+- - 3
+  - 3
+- - 2
+  - 2
+- - 1
+  - 1
+- - 0
+  - 0
+- - 4
+  - 5
+- - 3
+  - 5
+- - 2
+  - 5
+- - 1
+  - 5
+- - 0
+  - 5
+- - 4
+  - 6
+- - 3
+  - 7
+available_attacks: []
+current_player: white
+other_player: black
