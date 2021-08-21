@@ -1,7 +1,7 @@
 # Chess
 Created as part of [The Odin Project](https://www.theodinproject.com) curriculum.
 
-View on [Github](https://github.com/harmolipi/chess)
+View on [Github](https://github.com/harmolipi/chess).
 
 ### Functionality
 
